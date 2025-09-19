@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
-/** ---- Minimal “data layer” using localStorage ---- */
 const LS_KEY = "volunthero_users";
 function loadUsers() {
   try {
