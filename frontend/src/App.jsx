@@ -165,17 +165,14 @@ function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
 }
 
 /** ---- Home (bare) ---- */
-function Home({ onNavigate, authedEmail }) {
+function Home({ authedEmail, onNavigate }) {
   return (
     <main className="container">
       <div className="grid">
         <div className="col-12">
           <div className="card">
             <h2>Welcome</h2>
-            <p className="muted">
-              Minimal demo with Register → Login → Profile completion.
-            </p>
-            {!authedEmail ? (
+            {authedEmail && (
               <div style={{
                   display: "flex",
                   gap: 8,
@@ -184,18 +181,6 @@ function Home({ onNavigate, authedEmail }) {
                   alignItems: "center",    
                 }}
               >
-                <button onClick={() => onNavigate("register")}>Go to Register</button>
-                <button onClick={() => onNavigate("login")}>Go to Login</button>
-              </div>
-            ) : (
-              <div style={{
-                    display: "flex",
-                    gap: 8,
-                    marginTop: 16,
-                    justifyContent: "center",
-                    alignItems: "center",   
-                  }}
-                >
                 <button onClick={() => onNavigate("profile")}>
                   Complete Profile
                 </button>
@@ -285,8 +270,8 @@ function SelectAccountType({ onSelect }) {
             display: "flex",
             gap: 8,
             marginTop: 16,
-            justifyContent: "center", // centers horizontally
-            alignItems: "center",     // centers vertically if needed
+            justifyContent: "center",
+            alignItems: "center",   
           }}
         >
           <button onClick={() => onSelect("volunteer")}>Volunteer</button>
@@ -298,7 +283,7 @@ function SelectAccountType({ onSelect }) {
 }
 
 /** ---- Register ---- */
-function Register({ users, setUsers, onNavigate }) {
+function Register({ users, setUsers, onNavigate, accountType }) {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
@@ -316,6 +301,7 @@ function Register({ users, setUsers, onNavigate }) {
     const userRecord = {
       email: email.toLowerCase(),
       password: pw,
+      role: accountType,
       profile: null, // not completed yet
     };
     const updated = setUser(users, email, userRecord);
@@ -827,6 +813,7 @@ export default function App() {
   const [authedEmail, setAuthedEmail] = useState(
     () => localStorage.getItem("volunthero_session") || ""
   );
+  const authedUser = authedEmail ? getUser(users, authedEmail) : null;
 
   useEffect(() => {
     saveUsers(users);
@@ -848,6 +835,7 @@ export default function App() {
         onNavigate={setView}
         current={view}
         authedEmail={authedEmail}
+        authedUser={authedUser}
         onLogout={handleLogout}
       />
       {view === "home" && (
