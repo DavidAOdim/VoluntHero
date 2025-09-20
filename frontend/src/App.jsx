@@ -176,10 +176,15 @@ function Home({ onNavigate, authedEmail }) {
               Minimal demo with Register → Login → Profile completion.
             </p>
             {!authedEmail ? (
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <button onClick={() => onNavigate("register")}>
-                  Go to Register
-                </button>
+              <div style={{
+                  display: "flex",
+                  gap: 8,
+                  marginTop: 16,
+                  justifyContent: "center",
+                  alignItems: "center",    
+                }}
+              >
+                <button onClick={() => onNavigate("register")}>Go to Register</button>
                 <button onClick={() => onNavigate("login")}>Go to Login</button>
               </div>
             ) : (
