@@ -188,7 +188,14 @@ function Home({ onNavigate, authedEmail }) {
                 <button onClick={() => onNavigate("login")}>Go to Login</button>
               </div>
             ) : (
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <div style={{
+                    display: "flex",
+                    gap: 8,
+                    marginTop: 16,
+                    justifyContent: "center",
+                    alignItems: "center",   
+                  }}
+                >
                 <button onClick={() => onNavigate("profile")}>
                   Complete Profile
                 </button>
@@ -248,11 +255,16 @@ function Login({ users, onLogin, onNavigate }) {
                   {err}
                 </p>
               ) : null}
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <div style={{
+                  display: "flex",
+                  gap: 8,
+                  marginTop: 16,
+                  justifyContent: "center", 
+                  alignItems: "center",   
+                }}
+              >
                 <button type="submit">Login</button>
-                <button type="button" onClick={() => onNavigate("register")}>
-                  Go to Register
-                </button>
+                <button type="button" onClick={() => onNavigate("register")}>Go to Register</button>
               </div>
             </form>
           </div>
@@ -269,7 +281,14 @@ function SelectAccountType({ onSelect }) {
       <div className="card">
         <h2>Create Account</h2>
         <p className="muted">Select the type of account you want to create:</p>
-        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+        <div style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 16,
+            justifyContent: "center", // centers horizontally
+            alignItems: "center",     // centers vertically if needed
+          }}
+        >
           <button onClick={() => onSelect("volunteer")}>Volunteer</button>
           <button onClick={() => onSelect("admin")}>Administrator</button>
         </div>
