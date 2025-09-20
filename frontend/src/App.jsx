@@ -148,9 +148,20 @@ function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
             Profile
           </button>
 
-          {/* for admins */}
+          {/* Everyone can view event list */}
+          <button
+            onClick={() => onNavigate("events")}
+            aria-pressed={current === "events"}
+          >
+            Events
+          </button>
+
+          {/* Admins only: manage screen */}
           {authedEmail && authedUser?.role === "admin" && (
-            <button onClick={() => onNavigate("events")}>
+            <button
+              onClick={() => onNavigate("manage-events")}
+              aria-pressed={current === "manage-events"}
+            >
               Manage Events
             </button>
           )}
@@ -760,6 +771,67 @@ function EventManager({ events, setEvents, authedUser }) {
   );
 }
 
+function EventList({ events, authedUser, setEvents }) {
+  function handleDelete(id) {
+    const updated = events.filter(e => e.id !== id);
+    setEvents(updated);
+    localStorage.setItem("volunthero_events", JSON.stringify(updated));
+  }
+
+  if (!events?.length) {
+    return (
+      <main className="container">
+        <p className="muted">No events available yet.</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="container">
+      <div className="events-grid">
+        {events.map(evt => (
+          <article
+            key={evt.id}
+            className={`event-card urgency-${(evt.urgency || 'low').toLowerCase()}`}
+          >
+            {/* icon bubble */}
+            <div className="event-bubble" aria-hidden="true">
+              <span className="bubble-emoji">
+                {evt.urgency === "High" ? "⭐" : evt.urgency === "Medium" ? "📅" : "🫶"}
+              </span>
+            </div>
+            {/* content */}
+            <div className="event-body">
+              <header className="event-head">
+                <h3 className="event-title">{evt.name}</h3>
+                <span className="event-date-badge">{evt.date}</span>
+              </header>
+              <p className="event-desc">{evt.description}</p>
+              <div className="event-meta">
+                <span className="event-location">📍 {evt.location}</span>
+                <span className={`event-urgency-tag urgency-${(evt.urgency || 'low').toLowerCase()}`}>
+                  {evt.urgency || "Low"}
+                </span>
+              </div>
+              {evt.skills?.length ? (
+                <ul className="skill-chips">
+                  {evt.skills.map(s => <li key={s} className="chip">{s}</li>)}
+                </ul>
+              ) : null}
+
+              {authedUser?.role === "admin" && (
+                <div className="event-actions">
+                  <button className="btn-ghost" onClick={() => handleDelete(evt.id)}>Delete</button>
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </main>
+  );
+}
+
 /** ---- Availability Picker (multiple date input) ---- */
 function AvailabilityPicker({ dates, onAdd, onRemove }) {
   const [tmp, setTmp] = useState("");
@@ -859,6 +931,9 @@ export default function App() {
         <Profile users={users} setUsers={setUsers} authedEmail={authedEmail} />
       )}
       {view === "events" && (
+        <EventList events={events} authedUser={authedUser} setEvents={setEvents} />
+      )}
+      {view === "manage-events" && (
         <EventManager events={events} setEvents={setEvents} authedUser={authedUser} />
       )}
     </>

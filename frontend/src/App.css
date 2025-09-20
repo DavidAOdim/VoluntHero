@@ -2,7 +2,7 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
+  text-align: center; 
 }
 
 .logo {
@@ -39,4 +39,167 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* grid */
+.events-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* card */
+.event-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border, #ececff);
+  background: var(--card-bg, #646161);
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.04);
+}
+
+/* bubble */
+.event-bubble {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #000000;
+  user-select: none;
+}
+
+/* gradient by urgency */
+.event-card.urgency-low .event-bubble {
+  background: radial-gradient(120% 120% at 0% 0%, #6cc57b 0%, #37a66f 70%);
+}
+.event-card.urgency-medium .event-bubble {
+  background: radial-gradient(120% 120% at 0% 0%, #5aa7ff 0%, #3b7ddd 70%);
+}
+.event-card.urgency-high .event-bubble {
+  background: radial-gradient(120% 120% at 0% 0%, #ff7a7a 0%, #e04444 70%);
+}
+
+/* header */
+.event-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.event-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+/* date badge */
+.event-date-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* desc */
+.event-desc {
+  margin: 8px 0 6px;
+  color: #000000;
+  font-size: 0.92rem;
+}
+
+/* meta row */
+.event-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.event-location {
+  font-size: 0.85rem;
+  color: #000000;
+}
+
+/* urgency tag */
+.event-urgency-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #444e6e;
+  color: #000000;
+}
+.urgency-low .event-urgency-tag { background:#ecfdf5; color:#065f46; }
+.urgency-medium .event-urgency-tag { background:#eff6ff; color:#1d4ed8; }
+.urgency-high .event-urgency-tag { background:#fef2f2; color:#b91c1c; }
+
+/* chips */
+.skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 6px 0 0;
+  list-style: none;
+}
+.chip {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+}
+
+/* actions */
+.event-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-ghost:hover { background:#74b1ed; }
+
+/* Header bar layout */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;             
+}
+
+/* Nav row */
+.bar nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;              
+  flex-wrap: wrap;         
+}
+
+/* Buttons with icons */
+.bar nav button {
+  display: inline-flex;    
+  align-items: center;
+  gap: 6px;                
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Make sure SVGs don’t squash or touch edges */
+.bar nav button svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
 }
