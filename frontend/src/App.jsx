@@ -646,6 +646,7 @@ function AvailabilityPicker({ dates, onAdd, onRemove }) {
 export default function App() {
   const [users, setUsers] = useState(loadUsers);
   const [view, setView] = useState("home");
+  const [accountType, setAccountType] = useState(""); // "volunteer" or "admin"
   const [authedEmail, setAuthedEmail] = useState(
     () => localStorage.getItem("volunthero_session") || ""
   );
@@ -678,8 +679,16 @@ export default function App() {
       {view === "login" && (
         <Login users={users} onLogin={handleLogin} onNavigate={setView} />
       )}
-      {view === "register" && (
-        <Register users={users} setUsers={setUsers} onNavigate={setView} />
+      {view === "register" && !accountType && (
+        <SelectAccountType onSelect={(type) => setAccountType(type)} />
+      )}
+      {view === "register" && accountType && (
+        <Register
+          users={users}
+          setUsers={setUsers}
+          onNavigate={setView}
+          accountType={accountType} // pass the selected type
+        />
       )}
       {view === "profile" && (
         <Profile users={users} setUsers={setUsers} authedEmail={authedEmail} />
