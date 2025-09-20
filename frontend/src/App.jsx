@@ -234,6 +234,22 @@ function Login({ users, onLogin, onNavigate }) {
   );
 }
 
+/** Account Registration Type */
+function SelectAccountType({ onSelect }) {
+  return (
+    <main className="container">
+      <div className="card">
+        <h2>Create Account</h2>
+        <p className="muted">Select the type of account you want to create:</p>
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button onClick={() => onSelect("volunteer")}>Volunteer</button>
+          <button onClick={() => onSelect("admin")}>Administrator</button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 /** ---- Register ---- */
 function Register({ users, setUsers, onNavigate }) {
   const [email, setEmail] = useState("");
