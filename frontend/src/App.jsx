@@ -9,6 +9,21 @@ function loadUsers() {
     return {};
   }
 }
+
+const EVENT_KEY = "volunthero_events";
+
+function loadEvents() {
+  try {
+    return JSON.parse(localStorage.getItem(EVENT_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveEvents(events) {
+  localStorage.setItem(EVENT_KEY, JSON.stringify(events));
+}
+
 function saveUsers(users) {
   localStorage.setItem(LS_KEY, JSON.stringify(users));
 }
@@ -102,7 +117,7 @@ function zipOk(v) {
 }
 
 /** ---- Header ---- */
-function Header({ onNavigate, current, authedEmail, onLogout }) {
+function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
   return (
     <header>
       <div className="bar">
@@ -132,6 +147,14 @@ function Header({ onNavigate, current, authedEmail, onLogout }) {
           >
             Profile
           </button>
+
+          {/* for admins */}
+          {authedEmail && authedUser?.role === "admin" && (
+            <button onClick={() => onNavigate("events")}>
+              Manage Events
+            </button>
+          )}
+
           {authedEmail ? (
             <button onClick={onLogout}>Logout ({authedEmail})</button>
           ) : null}
@@ -598,6 +621,135 @@ function Profile({ users, setUsers, authedEmail }) {
   );
 }
 
+/* --- Event Management (admin only) ---- */
+function EventManager({ events, setEvents, authedUser }) {
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    location: "",
+    skills: [],
+    urgency: "",
+    date: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [msg, setMsg] = useState("");
+
+  // only for admins
+  if (!authedUser || authedUser.role !== "admin") {
+    return (
+      <main className="container">
+        <div className="card">
+          <h2>Events</h2>
+          <p className="muted">Only administrators can create or manage events.</p>
+        </div>
+      </main>
+    );
+  }
+
+  function updateField(k, v) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function validate() {
+    const e = {};
+    if (!form.name || form.name.length > 100) e.name = "Event name required (max 100).";
+    if (!form.description) e.description = "Description required.";
+    if (!form.location) e.location = "Location required.";
+    if (!form.skills.length) e.skills = "Select at least one skill.";
+    if (!form.urgency) e.urgency = "Urgency required.";
+    if (!form.date) e.date = "Date required.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setMsg("");
+    if (!validate()) return;
+
+    const newEvent = { ...form, id: Date.now() };
+    const updated = [...events, newEvent];
+    setEvents(updated);
+    saveEvents(updated);
+
+    setMsg("Event created successfully.");
+    setForm({ name: "", description: "", location: "", skills: [], urgency: "", date: "" });
+  }
+
+  return (
+    <main className="container">
+      <div className="card">
+        <h2>Create Event</h2>
+        <form onSubmit={handleSubmit}>
+          <label>Event Name *</label>
+          <input
+            value={form.name}
+            onChange={(e) => updateField("name", e.target.value)}
+            maxLength={100}
+            required
+          />
+
+          <label>Description *</label>
+          <textarea
+            rows={3}
+            value={form.description}
+            onChange={(e) => updateField("description", e.target.value)}
+            required
+          />
+
+          <label>Location *</label>
+          <textarea
+            rows={2}
+            value={form.location}
+            onChange={(e) => updateField("location", e.target.value)}
+            required
+          />
+
+          <label>Required Skills *</label>
+          <select
+            multiple
+            value={form.skills}
+            onChange={(e) =>
+              updateField(
+                "skills",
+                Array.from(e.target.selectedOptions, (o) => o.value)
+              )
+            }
+            required
+          >
+            {SKILLS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+
+          <label>Urgency *</label>
+          <select
+            value={form.urgency}
+            onChange={(e) => updateField("urgency", e.target.value)}
+            required
+          >
+            <option value="">Select urgency</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+
+          <label>Event Date *</label>
+          <input
+            type="date"
+            value={form.date}
+            onChange={(e) => updateField("date", e.target.value)}
+            required
+          />
+
+          {msg && <p style={{ color: "green" }}>{msg}</p>}
+          <button type="submit">Create Event</button>
+        </form>
+      </div>
+    </main>
+  );
+}
+
 /** ---- Availability Picker (multiple date input) ---- */
 function AvailabilityPicker({ dates, onAdd, onRemove }) {
   const [tmp, setTmp] = useState("");
@@ -647,6 +799,7 @@ export default function App() {
   const [users, setUsers] = useState(loadUsers);
   const [view, setView] = useState("home");
   const [accountType, setAccountType] = useState(""); // "volunteer" or "admin"
+  const [events, setEvents] = useState(loadEvents);
   const [authedEmail, setAuthedEmail] = useState(
     () => localStorage.getItem("volunthero_session") || ""
   );
@@ -692,6 +845,9 @@ export default function App() {
       )}
       {view === "profile" && (
         <Profile users={users} setUsers={setUsers} authedEmail={authedEmail} />
+      )}
+      {view === "events" && (
+        <EventManager events={events} setEvents={setEvents} authedUser={authedUser} />
       )}
     </>
   );
