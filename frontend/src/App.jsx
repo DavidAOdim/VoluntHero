@@ -115,65 +115,133 @@ function required(v) {
 function zipOk(v) {
   return /^\d{5}(\d{4})?$/.test((v || "").trim());
 }
-
 /** ---- Header ---- */
+import NotificationBell from "./components/Notifications/NotificationBell"; // ✅ NEW IMPORT
+
 function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
   return (
     <header>
-      <div className="bar">
+      {/*  CHANGED: added flex layout so title left, nav + bell right */}
+      <div className="bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>VoluntHero</h1>
-        <nav>
-          <button
-            onClick={() => onNavigate("home")}
-            aria-pressed={current === "home"}
-          >
-            Home
-          </button>
-          <button
-            onClick={() => onNavigate("login")}
-            aria-pressed={current === "login"}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => onNavigate("register")}
-            aria-pressed={current === "register"}
-          >
-            Register
-          </button>
-          <button
-            onClick={() => onNavigate("profile")}
-            aria-pressed={current === "profile"}
-          >
-            Profile
-          </button>
 
-          {/* Everyone can view event list */}
-          <button
-            onClick={() => onNavigate("events")}
-            aria-pressed={current === "events"}
-          >
-            Events
-          </button>
-
-          {/* Admins only: manage screen */}
-          {authedEmail && authedUser?.role === "admin" && (
+        {/*  WRAPPED nav + bell together in a flexbox */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <nav>
             <button
-              onClick={() => onNavigate("manage-events")}
-              aria-pressed={current === "manage-events"}
+              onClick={() => onNavigate("home")}
+              aria-pressed={current === "home"}
             >
-              Manage Events
+              Home
             </button>
-          )}
+            <button
+              onClick={() => onNavigate("login")}
+              aria-pressed={current === "login"}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => onNavigate("register")}
+              aria-pressed={current === "register"}
+            >
+              Register
+            </button>
+            <button
+              onClick={() => onNavigate("profile")}
+              aria-pressed={current === "profile"}
+            >
+              Profile
+            </button>
 
-          {authedEmail ? (
-            <button onClick={onLogout}>Logout ({authedEmail})</button>
-          ) : null}
-        </nav>
+            {/* Everyone can view event list */}
+            <button
+              onClick={() => onNavigate("events")}
+              aria-pressed={current === "events"}
+            >
+              Events
+            </button>
+
+            {/* Admins only: manage screen */}
+            {authedEmail && authedUser?.role === "admin" && (
+              <button
+                onClick={() => onNavigate("manage-events")}
+                aria-pressed={current === "manage-events"}
+              >
+                Manage Events
+              </button>
+            )}
+
+            {authedEmail ? (
+              <button onClick={onLogout}>Logout ({authedEmail})</button>
+            ) : null}
+          </nav>
+
+          {/*  NEW: Notification bell placed here */}
+          {authedEmail && <NotificationBell />}
+        </div>
       </div>
     </header>
   );
 }
+
+// /** ---- Header ---- */
+// function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
+//   return (
+//     <header>
+//       <div className="bar">
+//         <h1>VoluntHero</h1>
+//         <nav>
+//           <button
+//             onClick={() => onNavigate("home")}
+//             aria-pressed={current === "home"}
+//           >
+//             Home
+//           </button>
+//           <button
+//             onClick={() => onNavigate("login")}
+//             aria-pressed={current === "login"}
+//           >
+//             Login
+//           </button>
+//           <button
+//             onClick={() => onNavigate("register")}
+//             aria-pressed={current === "register"}
+//           >
+//             Register
+//           </button>
+//           <button
+//             onClick={() => onNavigate("profile")}
+//             aria-pressed={current === "profile"}
+//           >
+//             Profile
+//           </button>
+
+//           {/* Everyone can view event list */}
+//           <button
+//             onClick={() => onNavigate("events")}
+//             aria-pressed={current === "events"}
+//           >
+//             Events
+//           </button>
+
+//           {/* Admins only: manage screen */}
+//           {authedEmail && authedUser?.role === "admin" && (
+//             <button
+//               onClick={() => onNavigate("manage-events")}
+//               aria-pressed={current === "manage-events"}
+//             >
+//               Manage Events
+//             </button>
+//           )}
+
+//           {authedEmail ? (
+//             <button onClick={onLogout}>Logout ({authedEmail})</button>
+//           ) : null}
+//         </nav>
+//       </div>
+//     </header>
+//   );
+// }
 
 /** ---- Home (bare) ---- */
 function Home({ authedEmail, onNavigate }) {
