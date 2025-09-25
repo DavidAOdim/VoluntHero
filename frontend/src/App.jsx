@@ -6,6 +6,9 @@ import NotificationBell from "./notifications/NotificationBell";
 import Inbox from "./notifications/Inbox";
 import useNotifications from "./notifications/useNotifications"; //  NEW
 
+// === Matching (new) ==
+import MatchingPage from "./pages/admin/MatchingPage";
+
 /** ---- LocalStorage helpers (MUST be defined before App uses them) ---- */
 const LS_KEY = "volunthero_users";
 const EVENT_KEY = "volunthero_events";
@@ -79,9 +82,22 @@ function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
             <button onClick={() => onNavigate("events")} aria-pressed={current === "events"}>Events</button>
 
             {authedEmail && authedUser?.role === "admin" && (
-              <button onClick={() => onNavigate("manage-events")} aria-pressed={current === "manage-events"}>
-                Manage Events
-              </button>
+              <>
+                <button
+                  onClick={() => onNavigate("manage-events")}
+                  aria-pressed={current === "manage-events"}
+                >
+                  Manage Events
+                </button>
+
+                {/* NEW: Volunteer Matching (admin only) */}
+                <button
+                  onClick={() => onNavigate("matching")}
+                  aria-pressed={current === "matching"}
+                >
+                  Match Volunteers
+                </button>
+              </>
             )}
 
             {authedEmail ? <button onClick={onLogout}>Logout ({authedEmail})</button> : null}
@@ -94,6 +110,42 @@ function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
     </header>
   );
 }
+
+// /** ---- Header ---- */
+// function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
+//   return (
+//     <header>
+//       <div className="bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+//         <h1>VoluntHero</h1>
+
+//         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+//           <nav>
+//             <button onClick={() => onNavigate("home")} aria-pressed={current === "home"}>Home</button>
+//             <button onClick={() => onNavigate("login")} aria-pressed={current === "login"}>Login</button>
+//             <button onClick={() => onNavigate("register")} aria-pressed={current === "register"}>Register</button>
+//             <button onClick={() => onNavigate("profile")} aria-pressed={current === "profile"}>Profile</button>
+//             <button onClick={() => onNavigate("events")} aria-pressed={current === "events"}>Events</button>
+
+//             {authedEmail && authedUser?.role === "admin" && (
+//               <button onClick={() => onNavigate("manage-events")} aria-pressed={current === "manage-events"}>
+//                 Manage Events
+//               </button>
+
+//               {/* NEW: Volunteer Matching (admin only) */}
+//               <button onClick={() => onNavigate("matching")} aria-pressed={current === "matching"}>Match Volunteers</button>
+
+//             )}
+
+//             {authedEmail ? <button onClick={onLogout}>Logout ({authedEmail})</button> : null}
+//           </nav>
+
+//           {/* Bell → Inbox view */}
+//           {authedEmail && <NotificationBell onClick={() => onNavigate("inbox")} />}
+//         </div>
+//       </div>
+//     </header>
+//   );
+// }
 
 /** ---- Home (with test notification button) ---- */
 function Home({ authedEmail, onNavigate }) {
@@ -598,6 +650,8 @@ export default function App() {
       {view === "profile" && <Profile users={users} setUsers={setUsers} authedEmail={authedEmail} />}
       {view === "events" && <EventList events={events} authedUser={authedUser} setEvents={setEvents} />}
       {view === "manage-events" && <EventManager events={events} setEvents={setEvents} authedUser={authedUser} />}
+
+      {view === "matching" && <MatchingPage />} {/* NEW */}
 
       {/* Inbox view */}
       {view === "inbox" && <Inbox />}
