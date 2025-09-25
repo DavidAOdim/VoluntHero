@@ -1,5 +1,6 @@
 import React from "react";
-import NotificationBell from "./Notifications/NotificationBell";
+// ⬇️ point to the new dependency-free bell we created
+import NotificationBell from "../notifications/NotificationBell";
 
 function Navbar() {
   return (
@@ -12,6 +13,7 @@ function Navbar() {
       alignItems: "center" 
     }}>
       <h2>VoluntHero</h2>
+      {/* If this Navbar gets used, the bell will show (no navigation here). */}
       <NotificationBell />
     </nav>
   );
