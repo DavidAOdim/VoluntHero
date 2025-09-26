@@ -1,9 +1,9 @@
 // Simple in-memory mock. Replace with real fetch() calls later.
 
 const VOLUNTEERS = [
-  { id: 1, fullName: "Ami Patel", email: "ami@example.org" },
-  { id: 2, fullName: "Diego Ramos", email: "diego@example.org" },
-  { id: 3, fullName: "Lee Wong",  email: "lee@example.org"  },
+  { id: 1, fullName: "Ami Patel", email: "ami@example.org", history: [] },
+  { id: 2, fullName: "Diego Ramos", email: "diego@example.org", history: [] },
+  { id: 3, fullName: "Lee Wong",  email: "lee@example.org", history: []  },
 ];
 
 const EVENTS = [
@@ -39,8 +39,10 @@ const EVENTS = [
   },
 ];
 
+// Simulate a delay to mimic a real API request
 const delay = (ms = 400) => new Promise(r => setTimeout(r, ms));
 
+// Fetch volunteers by query (name or email)
 export async function listVolunteers(query) {
   await delay();
   const q = (query || "").trim().toLowerCase();
@@ -50,6 +52,7 @@ export async function listVolunteers(query) {
   );
 }
 
+// Fetch the best match suggestion for a volunteer
 export async function getMatchSuggestion(volunteerId) {
   await delay();
   // For demo: pick highest score as best
@@ -57,8 +60,26 @@ export async function getMatchSuggestion(volunteerId) {
   return { best: sorted[0] || null, alternatives: sorted.slice(1) };
 }
 
+// Create an assignment for a volunteer
 export async function createAssignment({ eventId, userId, mode }) {
   await delay(300);
-  console.log("createAssignment", { eventId, userId, mode });
+
+  // Find the volunteer by their ID
+  const volunteer = VOLUNTEERS.find(v => v.id === userId);
+  if (volunteer) {
+    // Find the event by its ID
+    const event = EVENTS.find(e => e.id === eventId);
+    if (event) {
+      // Add the event to the volunteer's history
+      volunteer.history.push({
+        eventName: event.title,
+        eventDate: event.date,
+        eventLocation: event.location,
+        skillsRequired: event.requiredSkills.map(skill => skill.name),
+        status: mode === "confirmed" ? "Confirmed" : "Proposed",
+      });
+      console.log(`Assigned to ${volunteer.fullName}: ${event.title}`);
+    }
+  }
   return { ok: true };
 }
