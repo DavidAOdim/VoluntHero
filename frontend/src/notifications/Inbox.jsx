@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import useNotifications from "./useNotifications";
 
-export default function Inbox() {
+export default function Inbox({ onNavigate }) {
   const { items, markRead, markAllRead, remove, clear } = useNotifications();
   const [filter, setFilter] = useState("all"); // all | unread | read
 
@@ -11,12 +11,20 @@ export default function Inbox() {
     return items;
   }, [items, filter]);
 
+  const goToEvents = () => {
+    if (typeof onNavigate === "function") onNavigate("events");
+  };
+
   return (
     <div style={{ maxWidth: 920, margin: "24px auto", padding: "0 16px" }}>
       <h2 style={{ marginBottom: 12 }}>Notifications</h2>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <select aria-label="Filter notifications" value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          aria-label="Filter notifications"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <option value="all">All</option>
           <option value="unread">Unread</option>
           <option value="read">Read</option>
@@ -35,12 +43,20 @@ export default function Inbox() {
               borderRadius: 10,
               padding: 12,
               background: n.read ? "#1f1f1f" : "#222",
-              color: "#fff"
+              color: "#fff",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <strong>{n.title}</strong>
-              <span style={{ fontSize: 12, padding: "2px 6px", borderRadius: 10, border: "1px solid #444", background: "#111" }}>
+              <span
+                style={{
+                  fontSize: 12,
+                  padding: "2px 6px",
+                  borderRadius: 10,
+                  border: "1px solid #444",
+                  background: "#111",
+                }}
+              >
                 {n.type}
               </span>
               <span style={{ marginLeft: "auto", fontSize: 12, color: "#aaa" }}>
@@ -51,19 +67,27 @@ export default function Inbox() {
             {n.body && <p style={{ margin: "6px 0 10px" }}>{n.body}</p>}
 
             <div style={{ display: "flex", gap: 8 }}>
-              {!n.read && <button onClick={() => markRead(n.id, true)}>Mark read</button>}
-              {n.read && <button onClick={() => markRead(n.id, false)}>Mark unread</button>}
-              <button onClick={() => remove(n.id)}>Delete</button>
-              {n.related?.eventId && (
-                <a href={`/events/${n.related.eventId}`} style={{ marginLeft: "auto" }}>
-                  View event
-                </a>
+              {!n.read && (
+                <button onClick={() => markRead(n.id, true)}>Mark read</button>
               )}
+              {n.read && (
+                <button onClick={() => markRead(n.id, false)}>
+                  Mark unread
+                </button>
+              )}
+              <button onClick={() => remove(n.id)}>Delete</button>
+
+              {/* Navigate to Events page instead of using a dead link */}
+              <button style={{ marginLeft: "auto" }} onClick={goToEvents}>
+                View event
+              </button>
             </div>
           </article>
         ))}
 
-        {filtered.length === 0 && <div style={{ color: "#999" }}>No notifications.</div>}
+        {filtered.length === 0 && (
+          <div style={{ color: "#999" }}>No notifications.</div>
+        )}
       </div>
     </div>
   );

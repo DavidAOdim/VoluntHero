@@ -24,26 +24,30 @@ export default function NotificationsProvider({ children }) {
   const nextIdRef = useRef(items.reduce((m, n) => Math.max(m, n.id), 0) + 1);
 
   const pushToast = useCallback((toast) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const entry = { id, ...toast };
     setToasts((t) => [...t, entry]);
+    // auto-dismiss after 4s
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
   }, []);
 
-  const add = useCallback((partial) => {
-    const newItem = {
-      id: nextIdRef.current++,
-      title: partial.title ?? "Notification",
-      body: partial.body ?? "",
-      type: partial.type ?? "info",        // info | success | warning | error
-      read: false,
-      createdAt: new Date().toISOString(),
-      related: partial.related ?? null,    // { eventId, volunteerId, ... }
-    };
-    setItems((s) => [newItem, ...s]);
-    pushToast({ title: newItem.title, body: newItem.body, type: newItem.type });
-    return newItem;
-  }, [pushToast]);
+  const add = useCallback(
+    (partial) => {
+      const newItem = {
+        id: nextIdRef.current++,
+        title: partial.title ?? "Notification",
+        body: partial.body ?? "",
+        type: partial.type ?? "info", // info | success | warning | error
+        read: false,
+        createdAt: new Date().toISOString(),
+        related: partial.related ?? null, // { eventId, volunteerId, ... }
+      };
+      setItems((s) => [newItem, ...s]);
+      pushToast({ title: newItem.title, body: newItem.body, type: newItem.type });
+      return newItem;
+    },
+    [pushToast]
+  );
 
   const markRead = useCallback((id, read = true) => {
     setItems((s) => s.map((n) => (n.id === id ? { ...n, read } : n)));
@@ -61,47 +65,106 @@ export default function NotificationsProvider({ children }) {
 
   const unreadCount = items.filter((n) => !n.read).length;
 
-  const value = useMemo(() => ({
-    items,
-    unreadCount,
-    add,
-    markRead,
-    markAllRead,
-    remove,
-    clear,
-  }), [items, unreadCount, add, markRead, markAllRead, remove, clear]);
+  const value = useMemo(
+    () => ({
+      items,
+      unreadCount,
+      add,
+      markRead,
+      markAllRead,
+      remove,
+      clear,
+    }),
+    [items, unreadCount, add, markRead, markAllRead, remove, clear]
+  );
 
   return (
     <NotificationsContext.Provider value={value}>
       {children}
+
       {/* Toast layer */}
-      <div style={{
-        position: "fixed", top: 16, right: 16, display: "flex",
-        flexDirection: "column", gap: 8, zIndex: 9999
-      }}>
+      <div
+        style={{
+          position: "fixed",
+          top: 16,
+          right: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          zIndex: 9999,
+        }}
+      >
         {toasts.map((t) => (
-          <Toast key={t.id} title={t.title} body={t.body} type={t.type} />
+          <Toast
+            key={t.id}
+            title={t.title}
+            body={t.body}
+            type={t.type}
+            onClose={() =>
+              setToasts((all) => all.filter((x) => x.id !== t.id))
+            }
+          />
         ))}
       </div>
     </NotificationsContext.Provider>
   );
 }
 
-function Toast({ title, body, type }) {
-  const border = type === "success" ? "2px solid #2e7d32"
-              : type === "warning" ? "2px solid #ed6c02"
-              : type === "error"   ? "2px solid #d32f2f"
-              : "1px solid #999";
+function Toast({ title, body, type, onClose }) {
+  const border =
+    type === "success"
+      ? "2px solid #2e7d32"
+      : type === "warning"
+      ? "2px solid #ed6c02"
+      : type === "error"
+      ? "2px solid #d32f2f"
+      : "1px solid #999";
+
   return (
-    <div style={{
-      minWidth: 280, maxWidth: 420, padding: "12px 14px",
-      borderRadius: 10, background: "#fff",
-      color: "#111",                 // ← added for readable text on white
-      boxShadow: "0 6px 24px rgba(0,0,0,.12)",
-      border
-    }}>
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "relative",
+        minWidth: 280,
+        maxWidth: 420,
+        padding: "12px 14px",
+        paddingRight: 44, // room for the close button
+        borderRadius: 10,
+        background: "#fff",
+        color: "#0f172a",
+        boxShadow: "0 6px 24px rgba(0,0,0,.12)",
+        border,
+      }}
+    >
+      {/* Dismiss (cancel) button — plain "×", same color as text */}
+      <button
+        onClick={onClose}
+        aria-label="Dismiss notification"
+        title="Dismiss"
+        style={{
+          position: "absolute",
+          top: 6,
+          right: 6,
+          background: "transparent", // no circle
+          color: "inherit",           // same as the toast text color
+          border: "none",
+          padding: 0,
+          fontSize: 20,
+          fontWeight: 700,
+          lineHeight: 1,
+          cursor: "pointer",
+          // optional: slight shadow for contrast on light backgrounds
+          textShadow: "0 1px 1px rgba(0,0,0,0.35)",
+        }}
+      >
+        ×
+      </button>
+
       <div style={{ fontWeight: 700, marginBottom: 6 }}>{title}</div>
-      {body ? <div style={{ fontSize: 14, lineHeight: 1.4 }}>{body}</div> : null}
+      {body ? (
+        <div style={{ fontSize: 14, lineHeight: 1.4 }}>{body}</div>
+      ) : null}
     </div>
   );
 }

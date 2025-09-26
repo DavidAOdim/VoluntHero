@@ -634,7 +634,7 @@ export default function App() {
       {view === "matching" && <MatchingPage />} {/* NEW */}
 
       {/* Inbox view */}
-      {view === "inbox" && <Inbox />}
+      {view === "inbox" && <Inbox onNavigate={setView} />}
       {/* Add a route for Volunteer History */}
       {view === "volunteer-history" && <VolunteerHistory authedEmail={authedEmail} />}
     </>
