@@ -12,6 +12,9 @@ import MatchingPage from "./pages/admin/MatchingPage";
 // === Profile Page (new) ===
 import ProfilePage from "./pages/ProfilePage";  // Re-enable ProfilePage import
 
+// importing volunteerhistory
+import VolunteerHistory from "./components/VolunteerHistory";
+
 /** ---- LocalStorage helpers (MUST be defined before App uses them) ---- */
 const LS_KEY = "volunthero_users";
 const EVENT_KEY = "volunthero_events";
