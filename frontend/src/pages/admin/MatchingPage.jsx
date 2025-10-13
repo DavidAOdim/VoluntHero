@@ -39,7 +39,7 @@ export default function MatchingPage() {
   const [best, setBest] = useState(null);
   const [alts, setAlts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [vol, setVol] = useState(null);
+  const [vol, setVol] = useState(null); 
   const [mode, setMode] = useState("proposed");
   const [errors, setErrors] = useState({});
   const [backendMatches, setBackendMatches] = useState([]); // NEW: Backend matches
@@ -49,18 +49,18 @@ export default function MatchingPage() {
     setVol(v);
     setErrors({});
     setLoading(true);
-
+    
     if (useBackend) {
       // NEW: Use YOUR backend API
       try {
         const response = await fetch(`http://localhost:8080/matching/event/1`); // Using event 1 for demo
         const data = await response.json();
-
+        
         if (data.success && data.data.length > 0) {
           // Transform backend data to match existing frontend format
           const backendBest = data.data[0]; // Highest score is first
           const backendAlts = data.data.slice(1); // Rest are alternatives
-
+          
           setBest(transformBackendEvent(backendBest));
           setAlts(backendAlts.map(transformBackendEvent));
           setBackendMatches(data.data);
@@ -78,50 +78,30 @@ export default function MatchingPage() {
       setBest(res.best);
       setAlts(res.alternatives);
     }
-
+    
     setLoading(false);
-  }
-  function transformBackendEvent(backendMatch) {
-    return {
-      id: backendMatch.volunteer?.id || backendMatch.event?.id || Math.random(),
-      title: backendMatch.event?.name || backendMatch.volunteer?.name || "Event",
-      location: backendMatch.event?.location || backendMatch.volunteer?.location || "Location",
-      date: backendMatch.event?.date || new Date().toISOString(),
-      score: backendMatch.matchScore || 0,
-      requiredSkills: backendMatch.matchingSkills?.map(skill => ({
-        skillId: skill,
-        name: skill,
-        minLevel: 1
-      })) || [],
-      breakdown: {
-        skill: Math.round((backendMatch.matchScore || 0) * 0.5),
-        availability: backendMatch.isAvailable ? 20 : 0,
-        distance: 30
-      }
-    };
   }
 
   // NEW: Transform backend data to match frontend format
-  // function transformBackendEvent(backendMatch) {
-  //   return {
-  //     id: backendMatch.volunteer.id,
-  //     title: backendMatch.volunteer.name,
-  //     location: backendMatch.volunteer.location,
-  //     date: new Date().toISOString(), // Use current date since backend doesn't provide event date
-  //     score: backendMatch.matchScore,
-  //     requiredSkills: backendMatch.matchingSkills.map(skill => ({
-  //       skillId: skill,
-  //       name: skill,
-  //       minLevel: 1
-  //     })),
-  //     breakdown: {
-  //       skill: backendMatch.matchScore * 0.5, // Estimate based on weights
-  //       availability: backendMatch.isAvailable ? 0.2 : 0,
-  //       distance: 0.3 // Estimate
-  //     }
-  //   };
-  // }
-
+  function transformBackendEvent(backendMatch) {
+    return {
+      id: backendMatch.volunteer.id,
+      title: backendMatch.volunteer.name,
+      location: backendMatch.volunteer.location,
+      date: new Date().toISOString(), // Use current date since backend doesn't provide event date
+      score: backendMatch.matchScore,
+      requiredSkills: backendMatch.matchingSkills.map(skill => ({
+        skillId: skill,
+        name: skill,
+        minLevel: 1
+      })),
+      breakdown: {
+        skill: backendMatch.matchScore * 0.5, // Estimate based on weights
+        availability: backendMatch.isAvailable ? 0.2 : 0,
+        distance: 0.3 // Estimate
+      }
+    };
+  }
 
   function validate() {
     const e = {};
@@ -148,9 +128,9 @@ export default function MatchingPage() {
             eventId: 1 // Using event 1 for demo - in real app, this would be dynamic
           })
         });
-
+        
         const data = await response.json();
-
+        
         if (data.success) {
           // Update the volunteer history after proposing or confirming the assignment
           updateVolunteerHistory(vol.email, best, mode);
@@ -225,7 +205,11 @@ export default function MatchingPage() {
             className="ml-auto px-4 py-2 rounded bg-black text-white disabled:opacity-40"
             disabled={!vol || !best}
           >
-            {mode === "confirmed" ? "Confirm Assignment" : "Assign Volunteer"}
+            {useBackend ? (
+              mode === "confirmed" ? "Confirm via Backend" : "Propose via Backend"
+            ) : (
+              mode === "confirmed" ? "Confirm Assignment" : "Propose Assignment"
+            )}
           </button>
         </div>
       </form>
@@ -279,7 +263,7 @@ export default function MatchingPage() {
 //   const [best, setBest] = useState(null);
 //   const [alts, setAlts] = useState([]);
 //   const [loading, setLoading] = useState(false);
-//   const [vol, setVol] = useState(null);
+//   const [vol, setVol] = useState(null); 
 //   const [mode, setMode] = useState("proposed");
 //   const [errors, setErrors] = useState({});
 
