@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import { fetchEvents, createEvent, deleteEvent } from "./api/eventsServer";
 
 // === Notifications (new) ===
 import NotificationBell from "./notifications/NotificationBell";
@@ -449,21 +450,17 @@ function EventManager({ events, setEvents, authedUser }) {
     setMsg("");
     if (!validate()) return;
 
-    const newEvent = { ...form, id: Date.now() };
-    const updated = [...events, newEvent];
-    setEvents(updated);
-    saveEvents(updated);
+    // Call backend API to create event
+    const newEvent = { ...form };
 
-    setMsg("Event created successfully.");
-    setForm({ name: "", description: "", location: "", skills: [], urgency: "", date: "" });
-
-    // ✅ NEW: toast + inbox item for event creation
-    add({
-      title: "Event Created",
-      body: `“${newEvent.name}” on ${newEvent.date} was created.`,
-      type: "info",
-      related: { eventId: newEvent.id },
-    });
+  createEvent(newEvent)
+    .then((savedEvent) => {
+      setEvents((prev) => [...prev, savedEvent]); // add returned event from backend
+      setMsg("Event created successfully.");
+      setForm({ name: "", description: "", location: "", skills: [], urgency: "", date: "" });
+      add({ title: "Event Created", body: `“${savedEvent.name}” on ${savedEvent.date} was created.`, type: "info", related: { eventId: savedEvent.id } });
+    })
+    .catch((err) => { console.error(err); setMsg("Failed to create event."); });
   }
 
   return (
@@ -505,11 +502,16 @@ function EventManager({ events, setEvents, authedUser }) {
 }
 
 function EventList({ events, authedUser, setEvents }) {
-  function handleDelete(id) {
+  /*function handleDelete(id) {
     const updated = events.filter(e => e.id !== id);
     setEvents(updated);
     localStorage.setItem("volunthero_events", JSON.stringify(updated));
-  }
+  }*/
+ function handleDelete(id) {
+  deleteEvent(id)
+    .then(() => setEvents(prev => prev.filter(e => e.id !== id)))
+    .catch(err => console.error("Failed to delete event:", err));
+}
 
   if (!events?.length) {
     return (
@@ -592,13 +594,26 @@ export default function App() {
   const [users, setUsers] = useState(loadUsers);
   const [view, setView] = useState("home");
   const [accountType, setAccountType] = useState(""); // "volunteer" or "admin"
-  const [events, setEvents] = useState(loadEvents);
+  const [events, setEvents] = useState([]); // start empty, fetch from backend
+  const [loadingEvents, setLoadingEvents] = useState(true); // loading state for events
   const [authedEmail, setAuthedEmail] = useState(
     () => localStorage.getItem("volunthero_session") || ""
   );
   const authedUser = authedEmail ? getUser(users, authedEmail) : null;
 
   useEffect(() => { saveUsers(users); }, [users]);
+
+  // fetch events from backend once on mount
+  useEffect(() => {
+    fetchEvents()
+      .then((data) => { 
+        setEvents(data); 
+        saveEvents(data); 
+      })
+      .catch(err => console.error("Failed to fetch events:", err))
+      .finally(() => setLoadingEvents(false));
+  }, []);
+
 
   function handleLogin(email) {
     setAuthedEmail(email);
@@ -628,11 +643,13 @@ export default function App() {
       )}
       {/* {view === "profile" && <Profile users={users} setUsers={setUsers} authedEmail={authedEmail} />} */}
       {view === "profile" && <ProfilePage authedEmail={authedEmail} />}
-      {view === "events" && <EventList events={events} authedUser={authedUser} setEvents={setEvents} />}
+      {view === "events" && (
+        loadingEvents 
+          ? <p>Loading events...</p> 
+          : <EventList events={events} authedUser={authedUser} setEvents={setEvents} />
+      )}
       {view === "manage-events" && <EventManager events={events} setEvents={setEvents} authedUser={authedUser} />}
-
       {view === "matching" && <MatchingPage />} {/* NEW */}
-
       {/* Inbox view */}
       {view === "inbox" && <Inbox onNavigate={setView} />}
       {/* Add a route for Volunteer History */}
