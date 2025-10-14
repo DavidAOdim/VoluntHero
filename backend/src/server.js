@@ -32,7 +32,8 @@ app.get('/test-matching', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+if (require.main === module) {
+  app.listen(PORT, () => {
     console.log(`   it's alive on http://localhost:${PORT}`);
     console.log(`   Your endpoints available at:`);
     console.log(`   GET  /matching/event/:eventId`);
@@ -41,4 +42,6 @@ app.listen(PORT, () => {
     console.log(`   GET  /history/stats/:volunteerId`);
     console.log(`   POST /history - Add history record`);
     console.log(`   GET  /test-matching - Test route`);
-});
+  });
+}
+
