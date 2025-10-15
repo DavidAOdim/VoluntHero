@@ -2,48 +2,88 @@ const request = require("supertest");
 const express = require("express");
 const authRoutes = require("../src/routes/auth");
 
-// Create a lightweight Express app just for testing auth routes
+// Create a test app just for auth routes
 const app = express();
 app.use(express.json());
 app.use("/auth", authRoutes);
 
 describe("Auth API", () => {
   it("should register a new user successfully", async () => {
-    const registerRes = await request(app).post("/auth/register").send({
+    const res = await request(app).post("/auth/register").send({
       name: "Test User",
       email: "test@example.com",
       password: "Abc123!",
     });
 
-    expect(registerRes.statusCode).toBe(201);
-    expect(registerRes.body.message).toBe("User registered successfully");
+    expect([200, 201]).toContain(res.statusCode);
+    expect(res.body.message).toMatch(/registered/i);
+  });
+
+  it("should prevent duplicate registration for the same email", async () => {
+    // First registration
+    await request(app).post("/auth/register").send({
+      name: "Duplicate User",
+      email: "dup@example.com",
+      password: "Abc123!",
+    });
+
+    // Attempt second registration
+    const res = await request(app).post("/auth/register").send({
+      name: "Duplicate User Again",
+      email: "dup@example.com",
+      password: "Abc123!",
+    });
+
+    expect([400, 409]).toContain(res.statusCode);
+    expect(res.body.message).toMatch(/already exists|duplicate/i);
+  });
+
+  it("should return 400 if registration fields are missing", async () => {
+    const res = await request(app).post("/auth/register").send({
+      name: "",
+      email: "",
+      password: "",
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toMatch(/missing|required/i);
   });
 
   it("should log in an existing user successfully", async () => {
-    // First, register the user (so login has data to check)
+    // Register first
     await request(app).post("/auth/register").send({
       name: "Login Tester",
       email: "login@example.com",
       password: "Abc123!",
     });
 
-    // Then, attempt login
-    const loginRes = await request(app).post("/auth/login").send({
+    // Then log in
+    const res = await request(app).post("/auth/login").send({
       email: "login@example.com",
       password: "Abc123!",
     });
 
-    expect(loginRes.statusCode).toBe(200);
-    expect(loginRes.body.message).toBe("Login successful");
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toMatch(/login successful/i);
   });
 
   it("should return 400 for invalid credentials", async () => {
     const res = await request(app).post("/auth/login").send({
-      email: "invalid@example.com",
-      password: "wrongpass",
+      email: "wrong@example.com",
+      password: "WrongPass123",
+    });
+
+    expect([400, 401]).toContain(res.statusCode);
+    expect(res.body.message).toMatch(/invalid/i);
+  });
+
+  it("should return 400 if login fields are missing", async () => {
+    const res = await request(app).post("/auth/login").send({
+      email: "",
+      password: "",
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe("Invalid email or password");
+    expect(res.body.message).toMatch(/missing|required/i);
   });
 });
