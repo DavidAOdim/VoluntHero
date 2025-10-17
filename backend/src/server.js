@@ -1,35 +1,41 @@
-const express = require('express'); //represents the API that we are building (handles routes)
-const cors = require('cors'); //middleware to enable CORS (Cross-Origin Resource Sharing) allows frontend to call backend
-const authRoutes = require('./routes/auth'); //importing authentication routes from a separate file
-const profileRoutes = require('./routes/profile'); //importing profile routes from a separate file
+const express = require('express'); // represents the API that we are building (handles routes)
+const cors = require('cors'); // middleware to enable CORS (Cross-Origin Resource Sharing) allows frontend to call backend
+const authRoutes = require('./routes/auth'); // importing authentication routes from a separate file
+const profileRoutes = require('./routes/profile'); // importing profile routes from a separate file
 const eventRoutes = require('./routes/event'); // import event routes
 
 // Import volunteering modules (Hugo's)
 const matchingRoutes = require('./modules/VolunteerMatching/routes');
 const historyRoutes = require('./modules/VolunteerHistory/routes');
 
-const app = express(); //creates an instance of an Express application
-const PORT = 8080; //port number for the server to listen on
+// ✅ Import notifications routes
+const notificationRoutes = require('./routes/notifications');
 
-app.use(cors()); //enables CORS for all routes
-app.use(express.json()); //middleware to parse incoming JSON requests
+const app = express(); // creates an instance of an Express application
+const PORT = 8080; // port number for the server to listen on
 
-app.use('/auth', authRoutes); //mounts the authentication routes at the /auth path
-app.use('/profile', profileRoutes); //mounts the profile routes at the /profile path
+app.use(cors()); // enables CORS for all routes
+app.use(express.json()); // middleware to parse incoming JSON requests
+
+// Mount core routes
+app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
 app.use('/events', eventRoutes);
 
-//app.listen(PORT, () => console.log(`it's alive on http://localhost:${PORT}`)); //starts the server and listens for incoming requests
 // Mount volunteer modules
 app.use('/matching', matchingRoutes);
 app.use('/history', historyRoutes);
 
-// Hugo's contribution- Add a test route to verify your modules are loaded
+// ✅ Mount notifications routes
+app.use('/notifications', notificationRoutes);
+
+// Hugo's contribution - Add a test route to verify your modules are loaded
 app.get('/test-matching', (req, res) => {
-    res.json({ 
-        success: true, 
-        message: 'Matching module is working!',
-        your_modules: 'Volunteer Matching & History by Vitor Santos' 
-    });
+  res.json({
+    success: true,
+    message: 'Matching module is working!',
+    your_modules: 'Volunteer Matching & History by Vitor Santos'
+  });
 });
 
 if (require.main === module) {
@@ -41,7 +47,12 @@ if (require.main === module) {
     console.log(`   GET  /history/:volunteerId`);
     console.log(`   GET  /history/stats/:volunteerId`);
     console.log(`   POST /history - Add history record`);
+    console.log(`   GET  /notifications?userId=:id`);
+    console.log(`   POST /notifications`);
+    console.log(`   PATCH /notifications/:id/read`);
+    console.log(`   DELETE /notifications/:id`);
     console.log(`   GET  /test-matching - Test route`);
   });
 }
 
+module.exports = app;
