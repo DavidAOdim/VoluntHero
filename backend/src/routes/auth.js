@@ -1,34 +1,56 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
+const express = require("express");
+const bcrypt = require("bcryptjs");
 const router = express.Router();
 
-let users = {}; // In-memory user storage (replace with a database in production) user store: { email: { passwordHash, name } }
+let users = {}; // In-memory user store: { email: { name, passwordHash } }
 
-// Register a new user (endpoint: POST /auth/register
-router.post('/register', async (req, res) => {
-    const { email, password, name } = req.body;
-    if (!email || !password || !name) {
-        return res.status(400).json({ message: 'Email, password, and name are required' });
-    }
-    if (users[email]) {
-        return res.status(400).json({ message: 'User already exists' });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users[email] = { name, passwordHash: hashedPassword };
-    res.status(201).json({ message: 'User registered successfully' });
+// Register a new user
+router.post("/register", async (req, res) => {
+  const { email, password, name } = req.body;
+
+  // Check for missing fields
+  if (!email || !password || !name) {
+    return res
+      .status(400)
+      .json({ message: "Missing required fields: email, password, and name" });
+  }
+
+  // Check for duplicate user
+  if (users[email]) {
+    return res.status(400).json({ message: "User already exists" });
+  }
+
+  // Hash password and store user
+  const hashedPassword = await bcrypt.hash(password, 10);
+  users[email] = { name, passwordHash: hashedPassword };
+
+  return res.status(201).json({ message: "User registered successfully" });
 });
 
-//login an existing user (endpoint: POST /auth/login)
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    const user = users[email];
+// Login an existing user
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
 
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' }); //authentication
+  // Check for missing login data
+  if (!email || !password) {
+    return res.status(400).json({ message: "Missing required login fields" });
+  }
 
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash); //authentication check
-    if (!isPasswordValid) return res.status(400).json({ message: 'Invalid password' });
+  const user = users[email];
+  if (!user) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-    res.json({ message: 'Login successful', name: user.name, email });
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isPasswordValid) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
+
+  return res.status(200).json({
+    message: "Login successful",
+    name: user.name,
+    email,
+  });
 });
 
 module.exports = router;
