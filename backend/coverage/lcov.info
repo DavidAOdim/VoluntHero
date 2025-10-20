@@ -1,5 +1,5 @@
 TN:
-SF:src\controllers\eventController.js
+SF:src/controllers/eventController.js
 FN:9,(anonymous_0)
 FN:13,(anonymous_1)
 FN:19,(anonymous_2)
@@ -61,7 +61,7 @@ BRF:17
 BRH:16
 end_of_record
 TN:
-SF:src\models\eventModel.js
+SF:src/models/eventModel.js
 FN:3,getAllEvents
 FN:7,getEventById
 FN:8,(anonymous_2)
@@ -109,7 +109,7 @@ BRF:4
 BRH:4
 end_of_record
 TN:
-SF:src\routes\auth.js
+SF:src/routes/auth.js
 FN:8,(anonymous_0)
 FN:31,(anonymous_1)
 FNF:2
@@ -162,7 +162,7 @@ BRF:15
 BRH:14
 end_of_record
 TN:
-SF:src\routes\event.js
+SF:src/routes/event.js
 FNF:0
 FNH:0
 DA:1,2
@@ -180,7 +180,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
-SF:src\routes\profile.js
+SF:src/routes/profile.js
 FN:7,(anonymous_0)
 FN:17,(anonymous_1)
 FNF:2
