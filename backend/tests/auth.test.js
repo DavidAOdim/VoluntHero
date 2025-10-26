@@ -1,13 +1,29 @@
 const request = require("supertest");
 const express = require("express");
+const db = require("../src/config/db"); // ✅ Import the DB connection
 const authRoutes = require("../src/routes/auth");
 
-// Create a test app just for auth routes
+// Create a test app
 const app = express();
 app.use(express.json());
 app.use("/auth", authRoutes);
 
-describe("Auth API", () => {
+beforeAll((done) => {
+  // Clear the UserCredentials table before tests start
+  db.query("DELETE FROM UserCredentials", (err) => {
+    if (err) console.error("❌ Error clearing test table:", err);
+    done();
+  });
+});
+
+afterAll((done) => {
+  // Close the DB connection after tests finish
+  db.end(() => {
+    done();
+  });
+});
+
+describe("Auth API (MySQL-backed)", () => {
   it("should register a new user successfully", async () => {
     const res = await request(app).post("/auth/register").send({
       name: "Test User",
@@ -27,9 +43,9 @@ describe("Auth API", () => {
       password: "Abc123!",
     });
 
-    // Attempt second registration
+    // Attempt duplicate registration
     const res = await request(app).post("/auth/register").send({
-      name: "Duplicate User Again",
+      name: "Duplicate Again",
       email: "dup@example.com",
       password: "Abc123!",
     });
@@ -46,7 +62,9 @@ describe("Auth API", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toMatch(/missing|required/i);
+    expect(res.body.message).toMatch(
+      /missing|required|email, password, and name are required/i
+    );
   });
 
   it("should log in an existing user successfully", async () => {
@@ -84,6 +102,8 @@ describe("Auth API", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toMatch(/missing|required/i);
+    expect(res.body.message).toMatch(
+      /missing|required|email and password are required/i
+    );
   });
 });
