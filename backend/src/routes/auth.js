@@ -1,56 +1,93 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const db = require("../config/db"); // ✅ MySQL connection
 const router = express.Router();
 
-let users = {}; // In-memory user store: { email: { name, passwordHash } }
-
-// Register a new user
+// ✅ REGISTER a new user
 router.post("/register", async (req, res) => {
   const { email, password, name } = req.body;
-
-  // Check for missing fields
   if (!email || !password || !name) {
     return res
       .status(400)
-      .json({ message: "Missing required fields: email, password, and name" });
+      .json({ message: "Email, password, and name are required" });
   }
 
-  // Check for duplicate user
-  if (users[email]) {
-    return res.status(400).json({ message: "User already exists" });
+  try {
+    // Check if the user already exists
+    db.query(
+      "SELECT * FROM UserCredentials WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err)
+          return res
+            .status(500)
+            .json({ message: "Database error", error: err });
+        if (results.length > 0) {
+          return res.status(400).json({ message: "User already exists" });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert new user
+        db.query(
+          "INSERT INTO UserCredentials (email, name, password_hash) VALUES (?, ?, ?)",
+          [email, name, hashedPassword],
+          (err, results) => {
+            if (err) {
+              console.error("❌ MySQL insert error:", err);
+              return res
+                .status(500)
+                .json({ message: "Error saving user", error: err });
+            }
+            console.log("✅ MySQL insert success:", results);
+            res.status(201).json({
+              message: "User registered successfully",
+              userId: results.insertId,
+            });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ message: "Unexpected error", error });
   }
-
-  // Hash password and store user
-  const hashedPassword = await bcrypt.hash(password, 10);
-  users[email] = { name, passwordHash: hashedPassword };
-
-  return res.status(201).json({ message: "User registered successfully" });
 });
 
-// Login an existing user
+// ✅ LOGIN an existing user
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
-  // Check for missing login data
   if (!email || !password) {
-    return res.status(400).json({ message: "Missing required login fields" });
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
-  const user = users[email];
-  if (!user) {
-    return res.status(400).json({ message: "Invalid email or password" });
-  }
+  db.query(
+    "SELECT * FROM UserCredentials WHERE email = ?",
+    [email],
+    async (err, results) => {
+      if (err)
+        return res.status(500).json({ message: "Database error", error: err });
+      if (results.length === 0)
+        return res.status(400).json({ message: "Invalid email or password" });
 
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isPasswordValid) {
-    return res.status(400).json({ message: "Invalid email or password" });
-  }
+      const user = results[0];
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash
+      );
 
-  return res.status(200).json({
-    message: "Login successful",
-    name: user.name,
-    email,
-  });
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      res.status(200).json({
+        message: "Login successful",
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+      });
+    }
+  );
 });
 
 module.exports = router;
