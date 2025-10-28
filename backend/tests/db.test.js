@@ -1,14 +1,37 @@
-const db = require("../src/config/db");
+// tests/db.test.js
+jest.mock('mysql2', () => ({
+  createPool: jest.fn(() => ({
+    getConnection: jest.fn(),
+  })),
+}));
 
-test("should connect to MySQL and return current time", (done) => {
-  db.query("SELECT NOW() AS `current_time`", (err, results) => {
-    if (err) {
-      done(err);
-    } else {
-      console.log("✅ MySQL time:", results[0].current_time);
-      expect(results[0]).toHaveProperty("current_time");
-      db.end();
-      done();
-    }
+describe('Database module', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    process.env.NODE_ENV = 'test'; // ensure guard disables connection
+    process.env.DB_HOST = 'localhost';
+    process.env.DB_USER = 'root';
+    process.env.DB_PASSWORD = 'password';
+    process.env.DB_NAME = 'testdb';
+    process.env.DB_PORT = '3306';
+  });
+
+  test('should create a pool with env variables', () => {
+    const mysql = require('mysql2');
+    require('../../db'); 
+
+    expect(mysql.createPool).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'testdb',
+        port: '3306',
+        charset: 'utf8mb4',
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+      })
+    );
   });
 });

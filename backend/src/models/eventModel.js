@@ -1,39 +1,38 @@
-let events = [];
+const db = require('../../../db');
 
-function getAllEvents() {
-  return events;
+// Get all events
+async function getAllEvents() {
+  const [rows] = await db.query('SELECT * FROM events');
+  return rows;
 }
 
-function getEventById(id) {
-  return events.find((e) => e.id === id);
+// Get event by ID
+async function getEventById(id) {
+  const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [id]);
+  return rows[0];
 }
 
-function createEvent(eventData) {
-  const newEvent = { id: Date.now().toString(), ...eventData };
-  events.push(newEvent);
-  return newEvent;
+// Create event
+async function createEvent(eventData) {
+  const { title, date, location, description, skills, urgency } = eventData;
+  const [result] = await db.query(
+    'INSERT INTO events (title, date, location, description, skills, urgency) VALUES (?, ?, ?, ?, ?, ?)',
+    [title, date, location, description, skills, urgency]
+  );
+  return { id: result.insertId, ...eventData };
 }
 
-function updateEvent(id, updatedData) {
-  const index = events.findIndex((e) => e.id === id);
-  if (index !== -1) {
-    events[index] = { ...events[index], ...updatedData };
-    return events[index];
-  }
-  return null;
+// Update event
+async function updateEvent(id, updatedData) {
+  const [result] = await db.query('UPDATE events SET ? WHERE id = ?', [updatedData, id]);
+  if (result.affectedRows === 0) return null;
+  return { id, ...updatedData };
 }
 
-function deleteEvent(id) {
-  const index = events.findIndex((e) => e.id === id);
-  if (index !== -1) {
-    return events.splice(index, 1)[0];
-  }
-  return null;
-}
-
-// helper for tests to reset the in-memory array
-function _resetEvents() {
-  events = [];
+// Delete event
+async function deleteEvent(id) {
+  const [result] = await db.query('DELETE FROM events WHERE id = ?', [id]);
+  return result.affectedRows > 0;
 }
 
 module.exports = {
@@ -42,5 +41,4 @@ module.exports = {
   createEvent,
   updateEvent,
   deleteEvent,
-  _resetEvents,
 };

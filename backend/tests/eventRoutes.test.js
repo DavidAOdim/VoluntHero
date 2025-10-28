@@ -1,54 +1,52 @@
 // tests/eventRoutes.test.js
 const request = require('supertest');
 const express = require('express');
-const router = require('../src/routes/event');
-const { _resetEvents } = require('../src/models/eventModel');
+
+// Mock the controller functions
+jest.mock('../src/controllers/eventController', () => ({
+  getEvents: jest.fn((req, res) => res.json([{ id: 1, title: 'Mock Event' }])),
+  getSingleEvent: jest.fn((req, res) => res.json({ id: req.params.id, title: 'Single Event' })),
+  addEvent: jest.fn((req, res) => res.status(201).json({ id: 123, ...req.body })),
+  editEvent: jest.fn((req, res) => res.json({ id: req.params.id, ...req.body })),
+  removeEvent: jest.fn((req, res) => res.json({ message: 'event deleted successfully' })),
+}));
+
+const eventRoutes = require('../src/routes/event');
 
 const app = express();
 app.use(express.json());
-app.use('/events', router);
+app.use('/events', eventRoutes);
 
 describe('Event Routes', () => {
-  beforeEach(() => {
-    _resetEvents(); // clear events before each test
+  test('GET /events should return all events', async () => {
+    const res = await request(app).get('/events');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ id: 1, title: 'Mock Event' }]);
   });
 
-  test("router should have '/' route with GET and POST", async () => {
-    // test GET /
-    const getRes = await request(app).get('/events');
-    expect(getRes.statusCode).toBe(200);
-    expect(Array.isArray(getRes.body)).toBe(true);
-
-    // test POST /
-    const postRes = await request(app)
-      .post('/events')
-      .send({ title: 'Hackathon', date: '2025-10-13', location: 'Houston' });
-    expect(postRes.statusCode).toBe(201);
-    expect(postRes.body.title).toBe('Hackathon');
+  test('GET /events/:id should return a single event', async () => {
+    const res = await request(app).get('/events/42');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: '42', title: 'Single Event' });
   });
 
-  test("router should have '/:id' route with GET, PUT, DELETE", async () => {
-    // first create an event
-    const postRes = await request(app)
-      .post('/events')
-      .send({ title: 'Hackathon', date: '2025-10-13', location: 'Houston' });
-    const id = postRes.body.id;
+  test('POST /events should create a new event', async () => {
+    const newEvent = { title: 'New Event', date: '2025-10-27', location: 'Houston' };
+    const res = await request(app).post('/events').send(newEvent);
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ id: 123, ...newEvent });
+  });
 
-    // test GET /:id
-    const getRes = await request(app).get(`/events/${id}`);
-    expect(getRes.statusCode).toBe(200);
-    expect(getRes.body.id).toBe(id);
+  test('PUT /events/:id should update an event', async () => {
+    const updated = { title: 'Updated Event' };
+    const res = await request(app).put('/events/99').send(updated);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: '99', ...updated });
+  });
 
-    // test PUT /:id
-    const putRes = await request(app)
-      .put(`/events/${id}`)
-      .send({ title: 'Updated Title' });
-    expect(putRes.statusCode).toBe(200);
-    expect(putRes.body.title).toBe('Updated Title');
-
-    // test DELETE /:id
-    const delRes = await request(app).delete(`/events/${id}`);
-    expect(delRes.statusCode).toBe(200);
-    expect(delRes.body.message).toBe('event deleted successfully');
+  test('DELETE /events/:id should delete an event', async () => {
+    const res = await request(app).delete('/events/77');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'event deleted successfully' });
   });
 });

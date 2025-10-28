@@ -1,98 +1,136 @@
 // tests/eventController.test.js
 const request = require('supertest');
 const express = require('express');
-const router = require('../src/routes/event');
-const { _resetEvents } = require('../src/models/eventModel');
+const controller = require('../src/controllers/eventController');
+const model = require('../src/models/eventModel');
+
+// Mock the model functions
+jest.mock('../src/models/eventModel');
 
 const app = express();
 app.use(express.json());
-app.use('/events', router);
+
+// Wire up routes for testing
+app.get('/events', controller.getEvents);
+app.get('/events/:id', controller.getSingleEvent);
+app.post('/events', controller.addEvent);
+app.put('/events/:id', controller.editEvent);
+app.delete('/events/:id', controller.removeEvent);
 
 describe('Event Controller', () => {
-  beforeEach(() => {
-    _resetEvents(); // reset events before each test
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  // helper to create an event
-  async function createTestEvent() {
-    const res = await request(app)
-      .post('/events')
-      .send({ title: 'Hackathon', date: '2025-10-13', location: 'Houston' });
-    return res.body;
-  }
+  // GET /events
+  test('GET /events returns all events', async () => {
+    model.getAllEvents.mockResolvedValue([{ id: 1, title: 'Test Event' }]);
 
-  test('POST /events should create a new event', async () => {
-    const event = await createTestEvent();
-    expect(event.title).toBe('Hackathon');
-    expect(event.id).toBeDefined();
-  });
-
-  test('POST /events missing required fields should return 400', async () => {
-    const res = await request(app).post('/events').send({});
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe('missing required fields');
-  });
-
-  test('POST /events title too long should return 400', async () => {
-    const longTitle = 'A'.repeat(101);
-    const res = await request(app)
-      .post('/events')
-      .send({ title: longTitle, date: '2025-10-13', location: 'Houston' });
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe('Title too long');
-  });
-
-  test('POST /events description too long should return 400', async () => {
-    const longDesc = 'D'.repeat(501);
-    const res = await request(app)
-      .post('/events')
-      .send({ title: 'Event', date: '2025-10-13', location: 'Houston', description: longDesc });
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe('Description too long');
-  });
-
-  test('GET /events should return all events', async () => {
-    await createTestEvent();
     const res = await request(app).get('/events');
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBe(1);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ id: 1, title: 'Test Event' }]);
   });
 
-  test('GET /events/:id should return a single event', async () => {
-    const event = await createTestEvent();
-    const res = await request(app).get(`/events/${event.id}`);
-    expect(res.statusCode).toBe(200);
-    expect(res.body.id).toBe(event.id);
+  // GET /events/:id
+  test('GET /events/:id returns a single event', async () => {
+    model.getEventById.mockResolvedValue({ id: 1, title: 'Test Event' });
+
+    const res = await request(app).get('/events/1');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: 1, title: 'Test Event' });
   });
 
-  test('PUT /events/:id should update event', async () => {
-    const event = await createTestEvent();
-    const res = await request(app)
-      .put(`/events/${event.id}`)
-      .send({ title: 'Updated Title' });
-    expect(res.statusCode).toBe(200);
-    expect(res.body.title).toBe('Updated Title');
-  });
+  test('GET /events/:id returns 404 if not found', async () => {
+    model.getEventById.mockResolvedValue(null);
 
-  test('PUT /events/:id non-existent should return 404', async () => {
-    const res = await request(app)
-      .put('/events/nonexistent-id')
-      .send({ title: 'Updated Title' });
-    expect(res.statusCode).toBe(404);
+    const res = await request(app).get('/events/999');
+
+    expect(res.status).toBe(404);
     expect(res.body.message).toBe('event not found');
   });
 
-  test('DELETE /events/:id should delete event', async () => {
-    const event = await createTestEvent();
-    const res = await request(app).delete(`/events/${event.id}`);
-    expect(res.statusCode).toBe(200);
+  // POST /events
+  test('POST /events creates a new event', async () => {
+    const newEvent = {
+      title: 'New Event',
+      date: '2025-10-27',
+      location: 'Houston',
+      description: 'Test description',
+      skills: 'Node.js',
+      urgency: 'High',
+    };
+    model.createEvent.mockResolvedValue({ id: 123, ...newEvent });
+
+    const res = await request(app).post('/events').send(newEvent);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ id: 123, ...newEvent });
+  });
+
+  test('POST /events validates required fields', async () => {
+    const res = await request(app).post('/events').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('missing required fields');
+  });
+
+  test('POST /events validates title length', async () => {
+    const res = await request(app).post('/events').send({
+      title: 'x'.repeat(101),
+      date: '2025-10-27',
+      location: 'Houston',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Title too long');
+  });
+
+  test('POST /events validates description length', async () => {
+    const res = await request(app).post('/events').send({
+      title: 'Valid Title',
+      date: '2025-10-27',
+      location: 'Houston',
+      description: 'x'.repeat(501),
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Description too long');
+  });
+
+  // PUT /events/:id
+  test('PUT /events/:id updates an event', async () => {
+    model.updateEvent.mockResolvedValue({ id: 1, title: 'Updated Event' });
+
+    const res = await request(app).put('/events/1').send({ title: 'Updated Event' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: 1, title: 'Updated Event' });
+  });
+
+  test('PUT /events/:id returns 404 if not found', async () => {
+    model.updateEvent.mockResolvedValue(null);
+
+    const res = await request(app).put('/events/999').send({ title: 'Nothing' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('event not found');
+  });
+
+  // DELETE /events/:id
+  test('DELETE /events/:id deletes an event', async () => {
+    model.deleteEvent.mockResolvedValue(true);
+
+    const res = await request(app).delete('/events/1');
+
+    expect(res.status).toBe(200);
     expect(res.body.message).toBe('event deleted successfully');
   });
 
-  test('DELETE /events/:id non-existent should return 404', async () => {
-    const res = await request(app).delete('/events/nonexistent-id');
-    expect(res.statusCode).toBe(404);
+  test('DELETE /events/:id returns 404 if not found', async () => {
+    model.deleteEvent.mockResolvedValue(false);
+
+    const res = await request(app).delete('/events/999');
+
+    expect(res.status).toBe(404);
     expect(res.body.message).toBe('event not found');
   });
 });

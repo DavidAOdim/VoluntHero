@@ -764,7 +764,15 @@ function EventManager({ events, setEvents, authedUser }) {
     if (!validate()) return;
 
     // Call backend API to create event
-    const newEvent = { ...form };
+    const newEvent = {
+      title: form.name,           
+      description: form.description,
+      location: form.location,
+      skills: form.skills,
+      urgency: form.urgency,
+      date: form.date,
+    };
+
 
     createEvent(newEvent)
       .then((savedEvent) => {
