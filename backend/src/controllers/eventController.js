@@ -6,52 +6,60 @@ const {
   deleteEvent,
 } = require('../models/eventModel');
 
-const getEvents = (req, res) => {
-  res.json(getAllEvents());
+const getEvents = async (req, res) => {
+  try {
+    const events = await getAllEvents();
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-const getSingleEvent = (req, res) => {
-  const event = getEventById(req.params.id);
-  if (!event) return res.status(404).json({ message: 'event not found' });
-  res.json(event);
+const getSingleEvent = async (req, res) => {
+  try {
+    const event = await getEventById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'event not found' });
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-const addEvent = (req, res) => {
+const addEvent = async (req, res) => {
   const { title, date, location, description, skills, urgency } = req.body;
 
-  // required fields
   if (!title || !date || !location) {
     return res.status(400).json({ message: 'missing required fields' });
   }
-
-  // length validations
   if (title.length > 100) return res.status(400).json({ message: 'Title too long' });
   if (description && description.length > 500) return res.status(400).json({ message: 'Description too long' });
 
-  const newEvent = createEvent({
-    title,
-    date,
-    location,
-    description,
-    skills,
-    urgency,
-  });
-
-  res.status(201).json(newEvent);
+  try {
+    const newEvent = await createEvent({ title, date, location, description, skills, urgency });
+    res.status(201).json(newEvent);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-const editEvent = (req, res) => {
-  const updatedEvent = updateEvent(req.params.id, req.body);
-  if (!updatedEvent)
-    return res.status(404).json({ message: 'event not found' });
-  res.json(updatedEvent);
+const editEvent = async (req, res) => {
+  try {
+    const updatedEvent = await updateEvent(req.params.id, req.body);
+    if (!updatedEvent) return res.status(404).json({ message: 'event not found' });
+    res.json(updatedEvent);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-const removeEvent = (req, res) => {
-  const deletedEvent = deleteEvent(req.params.id);
-  if (!deletedEvent)
-    return res.status(404).json({ message: 'event not found' });
-  res.json({ message: 'event deleted successfully' });
+const removeEvent = async (req, res) => {
+  try {
+    const success = await deleteEvent(req.params.id);
+    if (!success) return res.status(404).json({ message: 'event not found' });
+    res.json({ message: 'event deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 module.exports = {

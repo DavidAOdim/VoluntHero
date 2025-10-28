@@ -1,109 +1,124 @@
-const request = require("supertest");
-const express = require("express");
-const db = require("../src/config/db"); // ✅ Import the DB connection
-const authRoutes = require("../src/routes/auth");
+// tests/auth.test.js
+const request = require('supertest');
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const db = require('../db'); 
+const authRouter = require('../src/routes/auth'); 
 
-// Create a test app
+// Mock db.query
+jest.mock('../db', () => ({
+  query: jest.fn(),
+}));
+
+// Mock bcrypt
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
+
 const app = express();
 app.use(express.json());
-app.use("/auth", authRoutes);
+app.use('/auth', authRouter);
 
-beforeAll((done) => {
-  // Clear the UserCredentials table before tests start
-  db.query("DELETE FROM UserCredentials", (err) => {
-    if (err) console.error("❌ Error clearing test table:", err);
-    done();
-  });
-});
-
-afterAll((done) => {
-  // Close the DB connection after tests finish
-  db.end(() => {
-    done();
-  });
-});
-
-describe("Auth API (MySQL-backed)", () => {
-  it("should register a new user successfully", async () => {
-    const res = await request(app).post("/auth/register").send({
-      name: "Test User",
-      email: "test@example.com",
-      password: "Abc123!",
-    });
-
-    expect([200, 201]).toContain(res.statusCode);
-    expect(res.body.message).toMatch(/registered/i);
+describe('Auth Routes', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it("should prevent duplicate registration for the same email", async () => {
-    // First registration
-    await request(app).post("/auth/register").send({
-      name: "Duplicate User",
-      email: "dup@example.com",
-      password: "Abc123!",
-    });
-
-    // Attempt duplicate registration
-    const res = await request(app).post("/auth/register").send({
-      name: "Duplicate Again",
-      email: "dup@example.com",
-      password: "Abc123!",
-    });
-
-    expect([400, 409]).toContain(res.statusCode);
-    expect(res.body.message).toMatch(/already exists|duplicate/i);
+  // REGISTER
+  test('POST /auth/register should validate required fields', async () => {
+    const res = await request(app).post('/auth/register').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Email, password, and name are required');
   });
 
-  it("should return 400 if registration fields are missing", async () => {
-    const res = await request(app).post("/auth/register").send({
-      name: "",
-      email: "",
-      password: "",
+  test('POST /auth/register should return 400 if user already exists', async () => {
+    db.query.mockImplementation((sql, params, cb) => {
+      cb(null, [{ id: 1, email: params[0] }]); // simulate existing user
     });
 
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toMatch(
-      /missing|required|email, password, and name are required/i
+    const res = await request(app).post('/auth/register').send({
+      email: 'test@example.com',
+      password: 'password123',
+      name: 'Test User',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('User already exists');
+  });
+
+  test('POST /auth/register should create a new user', async () => {
+    db.query
+      .mockImplementationOnce((sql, params, cb) => cb(null, [])) // no existing user
+      .mockImplementationOnce((sql, params, cb) => cb(null, { insertId: 123 })); // insert success
+
+    bcrypt.hash.mockResolvedValue('hashedPassword');
+
+    const res = await request(app).post('/auth/register').send({
+      email: 'new@example.com',
+      password: 'password123',
+      name: 'New User',
+    });
+
+    expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({
+      message: 'User registered successfully',
+      userId: 123,
+    });
+  });
+
+  // LOGIN
+  test('POST /auth/login should validate required fields', async () => {
+    const res = await request(app).post('/auth/login').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Email and password are required');
+  });
+
+  test('POST /auth/login should return 400 if user not found', async () => {
+    db.query.mockImplementation((sql, params, cb) => cb(null, [])); // no user
+
+    const res = await request(app).post('/auth/login').send({
+      email: 'missing@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Invalid email or password');
+  });
+
+  test('POST /auth/login should return 400 if password is invalid', async () => {
+    db.query.mockImplementation((sql, params, cb) =>
+      cb(null, [{ id: 1, email: params[0], name: 'Test', password_hash: 'hashed' }])
     );
+    bcrypt.compare.mockResolvedValue(false);
+
+    const res = await request(app).post('/auth/login').send({
+      email: 'test@example.com',
+      password: 'wrongpassword',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Invalid email or password');
   });
 
-  it("should log in an existing user successfully", async () => {
-    // Register first
-    await request(app).post("/auth/register").send({
-      name: "Login Tester",
-      email: "login@example.com",
-      password: "Abc123!",
-    });
-
-    // Then log in
-    const res = await request(app).post("/auth/login").send({
-      email: "login@example.com",
-      password: "Abc123!",
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toMatch(/login successful/i);
-  });
-
-  it("should return 400 for invalid credentials", async () => {
-    const res = await request(app).post("/auth/login").send({
-      email: "wrong@example.com",
-      password: "WrongPass123",
-    });
-
-    expect([400, 401]).toContain(res.statusCode);
-    expect(res.body.message).toMatch(/invalid/i);
-  });
-
-  it("should return 400 if login fields are missing", async () => {
-    const res = await request(app).post("/auth/login").send({
-      email: "",
-      password: "",
-    });
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body.message).toMatch(
-      /missing|required|email and password are required/i
+  test('POST /auth/login should succeed with valid credentials', async () => {
+    db.query.mockImplementation((sql, params, cb) =>
+      cb(null, [{ id: 1, email: params[0], name: 'Test', password_hash: 'hashed' }])
     );
+    bcrypt.compare.mockResolvedValue(true);
+
+    const res = await request(app).post('/auth/login').send({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      message: 'Login successful',
+      userId: 1,
+      name: 'Test',
+      email: 'test@example.com',
+    });
   });
 });

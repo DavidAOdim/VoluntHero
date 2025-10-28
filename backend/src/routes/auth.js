@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const db = require("../config/db"); // ✅ MySQL connection
+const db = require("../../db"); // ✅ MySQL connection
 const router = express.Router();
 
 // ✅ REGISTER a new user

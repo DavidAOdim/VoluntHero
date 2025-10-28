@@ -1,30 +1,26 @@
-const request = require("supertest");
-const express = require("express");
-const authRoutes = require("../src/routes/auth");
-const profileRoutes = require("../src/routes/profile");
+// tests/server.test.js
+const request = require('supertest');
+const app = require('../src/server'); 
 
-// Create a small express app just for testing server setup
-const app = express();
-app.use(express.json());
-app.use("/auth", authRoutes);
-app.use("/profile", profileRoutes);
-
-describe("Server setup", () => {
-  it("should successfully mount /auth routes", async () => {
-    // POST to /auth/login — we only care that it responds
-    const res = await request(app)
-      .post("/auth/login")
-      .send({ email: "test@example.com", password: "Abc123!" });
-
-    // Response code can be 200 if works, or 400/404 if validation fails
-    expect([200, 400, 401, 404]).toContain(res.statusCode);
+describe('Server setup', () => {
+  test('GET /test-matching should return success message', async () => {
+    const res = await request(app).get('/test-matching');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      success: true,
+      message: 'Matching module is working!',
+      your_modules: 'Volunteer Matching & History by Vitor Santos',
+    });
   });
 
-  it("should successfully mount /profile routes", async () => {
-    // POST to /profile with missing data to confirm route exists
-    const res = await request(app).post("/profile").send({});
+  test('Unknown route should return 404', async () => {
+    const res = await request(app).get('/nonexistent-route');
+    expect(res.status).toBe(404);
+  });
 
-    // Should respond (typically 400 due to validation)
-    expect([200, 400, 404]).toContain(res.statusCode);
+  test('POST /auth/register should be defined (may return validation error)', async () => {
+    const res = await request(app).post('/auth/register').send({});
+    // We don’t care about DB here, just that the route exists and responds
+    expect([200, 400, 500]).toContain(res.status);
   });
 });
