@@ -2,11 +2,11 @@
 const request = require('supertest');
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../db'); 
+const db = require('../../db'); 
 const authRouter = require('../src/routes/auth'); 
 
 // Mock db.query
-jest.mock('../db', () => ({
+jest.mock('../../db', () => ({
   query: jest.fn(),
 }));
 

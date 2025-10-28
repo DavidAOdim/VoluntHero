@@ -3,7 +3,7 @@ const cors = require('cors'); // middleware to enable CORS (Cross-Origin Resourc
 const authRoutes = require('./routes/auth'); // importing authentication routes from a separate file
 const profileRoutes = require('./routes/profile'); // importing profile routes from a separate file
 const eventRoutes = require('./routes/event'); // import event routes
-const db = require("../db");
+const db = require("../../db");
 
 // Import volunteering modules (Hugo's)
 const matchingRoutes = require('./modules/VolunteerMatching/routes');

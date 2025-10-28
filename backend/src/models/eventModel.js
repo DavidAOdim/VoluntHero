@@ -1,4 +1,4 @@
-const db = require('../../db');
+const db = require('../../../db');
 
 // Get all events
 async function getAllEvents() {

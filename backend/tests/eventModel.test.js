@@ -1,9 +1,9 @@
 // eventModel.test.js
-const db = require('../db');
+const db = require('../../db');
 const eventModel = require('../src/models/eventModel');
 
 // Mock the db.query function
-jest.mock('../db', () => ({
+jest.mock('../../db', () => ({
   query: jest.fn(),
 }));
 

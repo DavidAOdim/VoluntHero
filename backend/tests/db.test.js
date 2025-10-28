@@ -18,7 +18,7 @@ describe('Database module', () => {
 
   test('should create a pool with env variables', () => {
     const mysql = require('mysql2');
-    require('../db'); 
+    require('../../db'); 
 
     expect(mysql.createPool).toHaveBeenCalledWith(
       expect.objectContaining({
