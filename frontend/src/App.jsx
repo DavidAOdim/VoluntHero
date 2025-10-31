@@ -158,18 +158,22 @@ function Header({ onNavigate, current, authedEmail, authedUser, onLogout }) {
             >
               Home
             </button>
-            <button
-              onClick={() => onNavigate("login")}
-              aria-pressed={current === "login"}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => onNavigate("register")}
-              aria-pressed={current === "register"}
-            >
-              Register
-            </button>
+            {!authedEmail && (
+              <button
+                onClick={() => onNavigate("login")}
+                aria-pressed={current === "login"}
+              >
+                Login
+              </button>
+            )}
+            {!authedEmail && (
+              <button
+                onClick={() => onNavigate("register")}
+                aria-pressed={current === "register"}
+              >
+                Register
+              </button>
+            )}
             <button
               onClick={() => onNavigate("profile")}
               aria-pressed={current === "profile"}
