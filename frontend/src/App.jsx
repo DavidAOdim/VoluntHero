@@ -16,6 +16,8 @@ import ProfilePage from "./pages/ProfilePage"; // Re-enable ProfilePage import
 // importing volunteerhistory
 import VolunteerHistory from "./components/VolunteerHistory";
 
+import VolunteerHistoryPage from "./pages/VolunteerHistoryPage";
+
 /** ---- LocalStorage helpers (MUST be defined before App uses them) ---- */
 const LS_KEY = "volunthero_users";
 const EVENT_KEY = "volunthero_events";
@@ -1092,9 +1094,8 @@ export default function App() {
       {/* Inbox view */}
       {view === "inbox" && <Inbox onNavigate={setView} />}
       {/* Add a route for Volunteer History */}
-      {view === "volunteer-history" && (
-        <VolunteerHistory authedEmail={authedEmail} />
-      )}
+      {view === "volunteer-history" && <VolunteerHistoryPage />}
+
     </>
   );
 }
