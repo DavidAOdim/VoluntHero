@@ -408,6 +408,7 @@ function Register({ onNavigate, accountType }) {
           email,
           password: pw,
           name: email.split("@")[0], // temporary name logic
+          role: accountType,
         }),
       });
 
@@ -880,11 +881,6 @@ function EventManager({ events, setEvents, authedUser }) {
 }
 
 function EventList({ events, authedUser, setEvents }) {
-  /*function handleDelete(id) {
-    const updated = events.filter(e => e.id !== id);
-    setEvents(updated);
-    localStorage.setItem("volunthero_events", JSON.stringify(updated));
-  }*/
   function handleDelete(id) {
     deleteEvent(id)
       .then(() => setEvents((prev) => prev.filter((e) => e.id !== id)))
@@ -1075,12 +1071,26 @@ export default function App() {
         (loadingEvents ? (
           <p>Loading events...</p>
         ) : (
-          <EventList
-            events={events}
-            authedUser={authedUser}
-            setEvents={setEvents}
-          />
+          <>
+            {/* Show the create form if admin */}
+            {authedUser?.role === "admin" && (
+              <EventManager
+                events={events}
+                setEvents={setEvents}
+                authedUser={authedUser}
+              />
+            )}
+
+            {/* Always show the event list */}
+            <EventList
+              events={events}
+              authedUser={authedUser}
+              setEvents={setEvents}
+            />
+          </>
         ))}
+
+
       {view === "manage-events" && (
         <EventManager
           events={events}
