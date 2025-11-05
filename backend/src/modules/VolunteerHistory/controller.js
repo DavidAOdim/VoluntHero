@@ -6,13 +6,27 @@ const db = require("../../utils/dbConnect");
 exports.getHistory = async (req, res) => {
   try {
     const { volunteerId } = req.params;
-    const data = await service.getVolunteerHistory(volunteerId);
-    res.json({ success: true, volunteerId: Number(volunteerId), count: data.length, data });
+    const effectiveId = volunteerId || 1; // fallback for admin/demo
+    const data = await service.getVolunteerHistory(effectiveId);
+    res.json({ success: true, data });
+    //const data = await service.getVolunteerHistory(volunteerId);
+    //res.json({ success: true, data });
   } catch (err) {
     console.error("getHistory error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// exports.getHistory = async (req, res) => {
+//   try {
+//     const { volunteerId } = req.params;
+//     const data = await service.getVolunteerHistory(volunteerId);
+//     res.json({ success: true, volunteerId: Number(volunteerId), count: data.length, data });
+//   } catch (err) {
+//     console.error("getHistory error:", err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
 
 // POST /history
 exports.addHistory = async (req, res) => {
