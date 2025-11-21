@@ -24,7 +24,12 @@ async function createEvent(eventData) {
 
 // Update event
 async function updateEvent(id, updatedData) {
-  const [result] = await db.query('UPDATE events SET ? WHERE id = ?', [updatedData, id]);
+  const fields = Object.keys(updatedData).map(key => `${key} = ?`).join(", ");
+  const values = Object.values(updatedData);
+  const [result] = await db.query(
+  `UPDATE events SET ${fields} WHERE id = ?`,
+  [...values, id]
+);
   if (result.affectedRows === 0) return null;
   return { id, ...updatedData };
 }
