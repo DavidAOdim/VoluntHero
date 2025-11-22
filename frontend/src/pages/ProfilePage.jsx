@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import VolunteerHistory from "../components/VolunteerHistory";
 
 export default function ProfilePage({ authedEmail }) {
   const [profile, setProfile] = useState({
@@ -162,7 +161,6 @@ export default function ProfilePage({ authedEmail }) {
         </p>
       )}
 
-      <VolunteerHistory email={authedEmail} />
     </div>
   );
 }
