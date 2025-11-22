@@ -46,7 +46,7 @@ export default function MainLayout() {
       case "home":
         return <HomePage />;
       case "events":
-        return <EventListPage />; // The new page we implemented!
+        return <EventListPage authedUser={authedUser} />; // The new page we implemented!
       case "profile":
         return <ProfilePage />;
       case "notifications":

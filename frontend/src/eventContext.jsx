@@ -1,3 +1,4 @@
+// src/eventContext.js
 import React, {
   createContext,
   useContext,
@@ -7,16 +8,16 @@ import React, {
   useMemo,
 } from "react";
 import {
-  fetchAllEvents,
+  fetchEvents,
   createEvent,
   updateEvent,
   deleteEvent,
 } from "./api/eventsServer";
 
-// Define the Event Context
+// Create the context
 const EventContext = createContext();
 
-// Hook to use the Event Context
+// Hook to consume the context
 export function useEvents() {
   const context = useContext(EventContext);
   if (!context) {
@@ -25,18 +26,18 @@ export function useEvents() {
   return context;
 }
 
-// Event Provider Component
+// Provider component
 export function EventProvider({ children }) {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Data Fetching ---
+  // Load events from server
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchAllEvents();
+      const data = await fetchEvents();
       setEvents(data);
     } catch (err) {
       console.error("Failed to load events:", err);
@@ -46,18 +47,15 @@ export function EventProvider({ children }) {
     }
   }, []);
 
-  // Load events on mount
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
-
-  // --- CRUD Operations ---
 
   // Create
   const addEvent = useCallback(async (eventData) => {
     try {
       const newEvent = await createEvent(eventData);
-      setEvents((currentEvents) => [newEvent, ...currentEvents]);
+      setEvents((prev) => [newEvent, ...prev]);
       return newEvent;
     } catch (err) {
       console.error("Failed to add event:", err);
@@ -69,8 +67,8 @@ export function EventProvider({ children }) {
   const editEvent = useCallback(async (id, updatedData) => {
     try {
       const updatedEvent = await updateEvent(id, updatedData);
-      setEvents((currentEvents) =>
-        currentEvents.map((event) =>
+      setEvents((prev) =>
+        prev.map((event) =>
           event.id === id ? { ...event, ...updatedEvent } : event
         )
       );
@@ -85,9 +83,7 @@ export function EventProvider({ children }) {
   const removeEvent = useCallback(async (id) => {
     try {
       await deleteEvent(id);
-      setEvents((currentEvents) =>
-        currentEvents.filter((event) => event.id !== id)
-      );
+      setEvents((prev) => prev.filter((event) => event.id !== id));
       return true;
     } catch (err) {
       console.error("Failed to delete event:", err);
@@ -95,13 +91,13 @@ export function EventProvider({ children }) {
     }
   }, []);
 
-  // --- Context Value ---
+  // Memoize the value
   const value = useMemo(
     () => ({
       events,
       isLoading,
       error,
-      loadEvents, // Allows pages to manually refresh the data
+      loadEvents,
       addEvent,
       editEvent,
       removeEvent,
@@ -109,7 +105,5 @@ export function EventProvider({ children }) {
     [events, isLoading, error, loadEvents, addEvent, editEvent, removeEvent]
   );
 
-  return (
-    <EventContext.Provider value={value}>{children}</EventContext.Provider>
-  );
+  return <EventContext.Provider value={value}>{children}</EventContext.Provider>;
 }

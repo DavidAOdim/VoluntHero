@@ -1,13 +1,13 @@
-// src/pages/EventListPage.jsx (Consolidated functionality)
+// src/pages/EventListPage.jsx
+import { useState } from "react";
+import { SKILLS } from "../utils/constants";
+import useNotifications from "../notifications/useNotifications";
+import { useEvents } from "../eventContext";
 
-import { useState, useEffect } from "react";
-import { fetchEvents, createEvent, deleteEvent } from "../api/eventsServer";
-import { SKILLS } from "../utils/constants"; // Import constants
-import useNotifications from "../notifications/useNotifications"; // Import notifications hook
-
-// --- Component: Event Creation Form (previously EventManager) ---
-function EventCreationForm({ events, setEvents, authedUser }) {
+// --- Component: Event Creation Form ---
+function EventCreationForm({ authedUser }) {
   const { add } = useNotifications();
+  const { addEvent } = useEvents();
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -24,7 +24,6 @@ function EventCreationForm({ events, setEvents, authedUser }) {
   }
 
   function validate() {
-    // Basic validation from original App.jsx (you might move this to utils/validation.js later)
     const e = {};
     if (!form.name || form.name.length > 100)
       e.name = "Event name required (max 100).";
@@ -37,46 +36,41 @@ function EventCreationForm({ events, setEvents, authedUser }) {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setMsg("");
     if (!validate()) return;
 
-    const newEvent = {
-      title: form.name,
-      description: form.description,
-      location: form.location,
-      skills: form.skills,
-      urgency: form.urgency,
-      date: form.date,
-    };
-
-    createEvent(newEvent)
-      .then((savedEvent) => {
-        setEvents((prev) => [...prev, savedEvent]);
-        setMsg("Event created successfully.");
-        setForm({
-          name: "",
-          description: "",
-          location: "",
-          skills: [],
-          urgency: "",
-          date: "",
-        });
-        add({
-          title: "Event Created",
-          body: `“${savedEvent.name}” on ${savedEvent.date} was created.`,
-          type: "info",
-          related: { eventId: savedEvent.id },
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        setMsg("Failed to create event.");
+    try {
+      const savedEvent = await addEvent({
+        title: form.name,
+        description: form.description,
+        location: form.location,
+        skills: form.skills,
+        urgency: form.urgency,
+        date: form.date,
       });
+      setMsg("Event created successfully.");
+      setForm({
+        name: "",
+        description: "",
+        location: "",
+        skills: [],
+        urgency: "",
+        date: "",
+      });
+      add({
+        title: "Event Created",
+        body: `“${savedEvent.title}” on ${savedEvent.date} was created.`,
+        type: "info",
+        related: { eventId: savedEvent.id },
+      });
+    } catch (err) {
+      console.error(err);
+      setMsg("Failed to create event.");
+    }
   }
 
-  // Admin check for rendering
   if (!authedUser || authedUser.role !== "admin") {
     return (
       <div className="card">
@@ -86,12 +80,10 @@ function EventCreationForm({ events, setEvents, authedUser }) {
     );
   }
 
-  // Event Creation Form JSX
   return (
     <div className="card">
       <h2>Create Event</h2>
       <form onSubmit={handleSubmit}>
-        {/* ... (rest of the form fields: name, description, location, skills, urgency, date) ... */}
         <label>Event Name *</label>
         <input
           value={form.name}
@@ -162,12 +154,16 @@ function EventCreationForm({ events, setEvents, authedUser }) {
   );
 }
 
-// --- Component: Event Listing (previously EventList) ---
-function EventListing({ events, authedUser, setEvents }) {
-  function handleDelete(id) {
-    deleteEvent(id)
-      .then(() => setEvents((prev) => prev.filter((e) => e.id !== id)))
-      .catch((err) => console.error("Failed to delete event:", err));
+// --- Component: Event Listing ---
+function EventListing({ authedUser }) {
+  const { events, removeEvent } = useEvents();
+
+  async function handleDelete(id) {
+    try {
+      await removeEvent(id);
+    } catch (err) {
+      console.error("Failed to delete event:", err);
+    }
   }
 
   if (!events?.length) {
@@ -179,11 +175,8 @@ function EventListing({ events, authedUser, setEvents }) {
       {events.map((evt) => (
         <article
           key={evt.id}
-          className={`event-card urgency-${(
-            evt.urgency || "low"
-          ).toLowerCase()}`}
+          className={`event-card urgency-${(evt.urgency || "low").toLowerCase()}`}
         >
-          {/* ... (rest of the EventList JSX for rendering an event card) ... */}
           <div className="event-bubble" aria-hidden="true">
             <span className="bubble-emoji">
               {evt.urgency === "High"
@@ -195,7 +188,7 @@ function EventListing({ events, authedUser, setEvents }) {
           </div>
           <div className="event-body">
             <header className="event-head">
-              <h3 className="event-title">{evt.name}</h3>
+              <h3 className="event-title">{evt.title}</h3>
               <span className="event-date-badge">{evt.date}</span>
             </header>
             <p className="event-desc">{evt.description}</p>
@@ -235,21 +228,9 @@ function EventListing({ events, authedUser, setEvents }) {
   );
 }
 
-// --- Main Page Component (exported) ---
+// --- Main Page Component ---
 export default function EventListPage({ authedUser }) {
-  const [events, setEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(true);
-
-  // Initial fetch of events
-  useEffect(() => {
-    setLoadingEvents(true);
-    fetchEvents()
-      .then((data) => setEvents(data))
-      .catch((err) => console.error("Failed to fetch events:", err))
-      .finally(() => setLoadingEvents(false));
-  }, []);
-
-  // Helper to filter events based on the view
+  const { isLoading, error } = useEvents();
   const isManageView = authedUser?.role === "admin";
   const title = isManageView ? "Manage Events" : "Available Events";
 
@@ -257,28 +238,17 @@ export default function EventListPage({ authedUser }) {
     <main className="container">
       <h2>{title}</h2>
 
-      {/* Show Creation form only for Admins */}
-      {isManageView && (
-        <EventCreationForm
-          events={events}
-          setEvents={setEvents}
-          authedUser={authedUser}
-        />
-      )}
+      {isManageView && <EventCreationForm authedUser={authedUser} />}
 
       <section style={{ marginTop: "20px" }}>
         <h3>{isManageView ? "All Events" : "Current Listings"}</h3>
-        {loadingEvents ? (
+        {isLoading ? (
           <p>Loading events...</p>
         ) : (
-          <EventListing
-            events={events}
-            authedUser={authedUser}
-            setEvents={setEvents}
-          />
+          <EventListing authedUser={authedUser} />
         )}
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </section>
     </main>
   );
 }
-
