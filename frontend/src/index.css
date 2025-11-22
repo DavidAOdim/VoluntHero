@@ -1,107 +1,207 @@
-* { box-sizing: border-box; }
-html, body, #root { height: 100%; }
-body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background:
-    radial-gradient(1200px 700px at -10% -10%, color-mix(in oklab, var(--accent) 20%, transparent), transparent),
-    radial-gradient(1300px 800px at 110% -10%, color-mix(in oklab, var(--accent-2) 18%, transparent), transparent),
-    var(--bg);
-  color: var(--text);
-}
+@custom-variant dark (&:is(.dark *));
+
+/* Import beautiful, distinctive font for volunteer app */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #fffdf7;             /* warm paper */
-  --surface: #ffffff;         /* cards */
-  --text: #1f2937;            /* slate-800 */
-  --muted: #6b7280;           /* slate-500 */
-  --border: #f3e8ff;          /* soft lavender border */
-
-  /* Confetti accents */
-  --accent: #f59e0b;          /* sunny amber */
-  --accent-2: #22c55e;        /* mint green */
-  --accent-3: #60a5fa;        /* sky blue */
-  --accent-4: #fb7185;        /* cheerful coral */
-  --accent-5: #a78bfa;        /* lilac */
-
-  --btn: #fff7ed;             /* peachy */
-  --btn-hover: #ffedd5;       /* deeper peach */
-  --ring: #22c55e;            /* mint focus */
-
-  --success: #16a34a;
-  --danger: #ef4444;
-  --warning: #f59e0b;
+  /* Volunteer App Enhanced Variables */
+  --font-size: 16px;
+  --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Enhanced color palette for non-profit volunteer management */
+  --background: #fafafa;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #10b981;
+  --secondary-foreground: #ffffff;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #f59e0b;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #e5e7eb;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: #2563eb;
+  
+  /* Chart colors for volunteer statistics */
+  --chart-1: #2563eb;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  
+  --radius: 0.75rem;
+  
+  /* Sidebar colors */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #2563eb;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e1116;           /* cozy dark */
-    --surface: #141922;      /* soft card */
-    --text: #f8fafc;
-    --muted: #a3aab7;
-    --border: #262b36;
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #22c55e;
+  --secondary-foreground: #ffffff;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #fbbf24;
+  --accent-foreground: #0f172a;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  
+  /* Chart colors for dark mode */
+  --chart-1: #3b82f6;
+  --chart-2: #22c55e;
+  --chart-3: #fbbf24;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+  
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #3b82f6;
+}
 
-    /* keep accents bright in dark mode */
-    --accent: #ffb000;
-    --accent-2: #30e07a;
-    --accent-3: #7cc4ff;
-    --accent-4: #ff8aa1;
-    --accent-5: #c1a5ff;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
 
-    --btn: #172033;
-    --btn-hover: #1e2a44;
-    --ring: #7cc4ff;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Layout & utilities */
-.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
-.col-12 { grid-column: span 12; }
-.col-6 { grid-column: span 6; min-width: 280px; }
-.col-3 { grid-column: span 3; min-width: 200px; }
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
 
-@media (max-width: 900px) { .col-6, .col-3 { grid-column: span 12; } }
-.muted { color: var(--muted); }
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
 
-/* Buttons */
-button {
-  appearance: none;
-  border: 1px solid color-mix(in oklab, var(--accent-5) 35%, var(--border));
-  background: linear-gradient(180deg, color-mix(in oklab, var(--btn) 85%, var(--accent) 10%), var(--btn));
-  color: var(--text);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: .95rem;
-  cursor: pointer;
-  transition: transform 80ms ease, filter 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-}
-button:hover { filter: brightness(1.05); }
-button:active { transform: translateY(1px) scale(0.99); }
-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 40%, transparent);
-}
-button[aria-pressed="true"] {
-  border-color: color-mix(in oklab, var(--accent-2) 55%, var(--accent-5));
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
 }
 
-/* Variants */
-.btn-primary {
-  background: linear-gradient(180deg, color-mix(in oklab, var(--accent-2) 70%, #fff 15%), var(--accent-2));
-  border-color: color-mix(in oklab, var(--accent-2) 70%, #000);
-  color: #063b23;
+html {
+  font-size: var(--font-size);
 }
-.btn-danger {
-  background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 80%, #fff 10%), var(--danger));
-  border-color: color-mix(in oklab, var(--danger) 70%, #000);
-  color: #fff;
-}
-
-/* Links */
-a { color: color-mix(in oklab, var(--accent-3) 85%, #000); text-decoration: none; }
-a:hover { text-decoration: underline; }
