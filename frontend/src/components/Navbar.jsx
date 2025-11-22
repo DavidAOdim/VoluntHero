@@ -1,22 +1,94 @@
-import React from "react";
-// ⬇️ point to the new dependency-free bell we created
+// src/components/Navbar.jsx
+
 import NotificationBell from "../notifications/NotificationBell";
 
-function Navbar() {
+export default function Navbar({
+  onNavigate,
+  current,
+  authedEmail,
+  authedUser,
+  onLogout,
+}) {
   return (
-    <nav style={{ 
-      padding: "1rem", 
-      background: "#1976d2", 
-      color: "#fff", 
-      display: "flex", 
-      justifyContent: "space-between", 
-      alignItems: "center" 
-    }}>
-      <h2>VoluntHero</h2>
-      {/* If this Navbar gets used, the bell will show (no navigation here). */}
-      <NotificationBell />
-    </nav>
+    <header>
+      <div
+        className="bar"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h1>VoluntHero</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <nav>
+            <button
+              onClick={() => onNavigate("home")}
+              aria-pressed={current === "home"}
+            >
+              Home
+            </button>
+            {!authedEmail && (
+              <button
+                onClick={() => onNavigate("login")}
+                aria-pressed={current === "login"}
+              >
+                Login
+              </button>
+            )}
+            {!authedEmail && (
+              <button
+                onClick={() => onNavigate("register")}
+                aria-pressed={current === "register"}
+              >
+                Register
+              </button>
+            )}
+            <button
+              onClick={() => onNavigate("profile")}
+              aria-pressed={current === "profile"}
+            >
+              Profile
+            </button>
+            <button
+              onClick={() => onNavigate("events")}
+              aria-pressed={current === "events"}
+            >
+              Events
+            </button>
+            {authedEmail && (
+              <button
+                onClick={() => onNavigate("volunteer-history")}
+                aria-pressed={current === "volunteer-history"}
+              >
+                Volunteer History
+              </button>
+            )}
+            {authedEmail && authedUser?.role === "admin" && (
+              <>
+                <button
+                  onClick={() => onNavigate("manage-events")}
+                  aria-pressed={current === "manage-events"}
+                >
+                  Manage Events
+                </button>
+                <button
+                  onClick={() => onNavigate("matching")}
+                  aria-pressed={current === "matching"}
+                >
+                  Match Volunteers
+                </button>
+              </>
+            )}
+            {authedEmail ? (
+              <button onClick={onLogout}>Logout ({authedEmail})</button>
+            ) : null}
+          </nav>
+          {authedEmail && (
+            <NotificationBell onClick={() => onNavigate("inbox")} />
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
-
-export default Navbar;
