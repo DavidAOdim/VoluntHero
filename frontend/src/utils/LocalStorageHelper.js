@@ -29,7 +29,8 @@ export function saveEvents(events) {
   localStorage.setItem(EVENT_KEY, JSON.stringify(events));
 }
 
-export function getUser(users, email) {
+export function getUser(users, email, role) {
+  console.log(users[email.toLowerCase()] || null);
   return users[email.toLowerCase()] || null;
 }
 

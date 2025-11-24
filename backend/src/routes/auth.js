@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
     );
 
     if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid password" });
     }
 
     res.status(200).json({

@@ -5,7 +5,7 @@ import { isEmail, required } from "../utils/validation";
 
 // Note: Removed unused props (users, setUsers, accountType) based on backend logic in the original code.
 
-export default function Register({ onNavigate }) {
+export default function Register({ onNavigate, accountType }) {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
@@ -26,7 +26,8 @@ export default function Register({ onNavigate }) {
         body: JSON.stringify({
           email,
           password: pw,
-          name: email.split("@")[0], // temporary name logic
+          role: accountType,
+          name: email.split("@")[0], // name logic
         }),
       });
 
