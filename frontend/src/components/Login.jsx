@@ -26,6 +26,8 @@ export default function Login({ onLogin, onNavigate }) {
         setOk("Login successful!");
         onLogin(email.toLowerCase());
         onNavigate("profile");
+        localStorage.setItem("volunthero_session", JSON.stringify(result));
+        console.log("Login successful for user:", result);
       } else {
         setErr(result.message || "Login failed.");
       }

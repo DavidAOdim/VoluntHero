@@ -23,8 +23,24 @@ export async function createEvent(eventData) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(eventData),
   });
-  if (!res.ok) throw new Error("Failed to create event");
-  return await res.json();
+
+  // try to parse JSON message from server (may fail for empty responses)
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (e) {
+    // ignore parse error, keep data null
+  }
+
+  const serverMsg = data?.message ?? res.statusText ?? "No message";
+
+  if (!res.ok) {
+    console.error("Failed to create event:", serverMsg);
+    throw new Error(data?.message ?? "Failed to create event");
+  }
+
+  console.log("Create event response message:", serverMsg);
+  return data;
 }
 
 // update event

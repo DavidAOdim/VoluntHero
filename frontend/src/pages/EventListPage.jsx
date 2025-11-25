@@ -157,6 +157,7 @@ function EventCreationForm({ authedUser }) {
 // --- Component: Event Listing ---
 function EventListing({ authedUser }) {
   const { events, removeEvent } = useEvents();
+  console.log("Event Listing Page: ", typeof authedUser);
 
   async function handleDelete(id) {
     try {

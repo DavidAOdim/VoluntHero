@@ -26,20 +26,20 @@ export default function App() {
 
   // NOTE: Event state management is moved into EventListPage.jsx
 
-  const [authedEmail, setAuthedEmail] = useState(
-    () => localStorage.getItem("volunthero_session") || ""
-  );
-
   // authedUser depends on users state, so it's a derived value
-  const authedUser = authedEmail ? getUser(users, authedEmail) : null;
-
-  useEffect(() => {
-    saveUsers(users);
-  }, [users]);
+  const [authedUser, setAuthedUser] = useState(
+    () => JSON.parse(localStorage.getItem("volunthero_session")) || {}
+  );
+  
+  const [authedEmail, setAuthedEmail] = useState(
+  () => {
+    const session = localStorage.getItem("volunthero_session");
+    return session ? JSON.parse(session).email : "";
+  } );
 
   function handleLogin(email) {
     setAuthedEmail(email);
-    localStorage.setItem("volunthero_session", email);
+    // localStorage.setItem("volunthero_session", email);
   }
 
   function handleLogout() {
@@ -64,7 +64,7 @@ export default function App() {
         content = <SelectAccountType onSelect={setAccountType} />;
       } else {
         // Note: Removed the unused 'users', 'setUsers', 'accountType' props
-        content = <Register onNavigate={setView} />;
+        content = <Register accountType={accountType} onNavigate={setView} />;
       }
       break;
     case "profile":
@@ -73,11 +73,7 @@ export default function App() {
       break;
     case "events":
       // Use EventListPage for general event listing
-      content = <EventListPage authedUser={authedUser} isManage={false} />;
-      break;
-    case "manage-events":
-      // Use EventListPage, but pass a prop to show admin tools (creation form)
-      content = <EventListPage authedUser={authedUser} isManage={true} />;
+      content = <EventListPage authedUser={authedUser} />;
       break;
     case "matching":
       content = <MatchingPage />;

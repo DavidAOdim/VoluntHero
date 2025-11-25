@@ -54,7 +54,7 @@ export default function Navbar({
               onClick={() => onNavigate("events")}
               aria-pressed={current === "events"}
             >
-              Events
+              {authedUser?.role === "admin" ? "Manage Events" : "Events"}
             </button>
             {authedEmail && (
               <button
@@ -66,12 +66,6 @@ export default function Navbar({
             )}
             {authedEmail && authedUser?.role === "admin" && (
               <>
-                <button
-                  onClick={() => onNavigate("manage-events")}
-                  aria-pressed={current === "manage-events"}
-                >
-                  Manage Events
-                </button>
                 <button
                   onClick={() => onNavigate("matching")}
                   aria-pressed={current === "matching"}
