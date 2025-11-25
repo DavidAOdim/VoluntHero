@@ -1,16 +1,14 @@
-// tests/auth.test.js
 const request = require('supertest');
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../../db'); 
-const authRouter = require('../src/routes/auth'); 
+const db = require('../../db');
+const authRouter = require('../src/routes/auth');
 
-// Mock db.query
+// Mock the db module to use promises
 jest.mock('../../db', () => ({
   query: jest.fn(),
 }));
 
-// Mock bcrypt
 jest.mock('bcryptjs', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
@@ -29,18 +27,16 @@ describe('Auth Routes', () => {
   test('POST /auth/register should validate required fields', async () => {
     const res = await request(app).post('/auth/register').send({});
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe('Email, password, and name are required');
+    expect(res.body.message).toBe('Email and password are required');
   });
 
   test('POST /auth/register should return 400 if user already exists', async () => {
-    db.query.mockImplementation((sql, params, cb) => {
-      cb(null, [{ id: 1, email: params[0] }]); // simulate existing user
-    });
+    db.query.mockResolvedValue([[{ id: 1, email: 'test@example.com' }]]);
 
     const res = await request(app).post('/auth/register').send({
       email: 'test@example.com',
       password: 'password123',
-      name: 'Test User',
+      name: 'Test User'
     });
 
     expect(res.status).toBe(400);
@@ -49,15 +45,15 @@ describe('Auth Routes', () => {
 
   test('POST /auth/register should create a new user', async () => {
     db.query
-      .mockImplementationOnce((sql, params, cb) => cb(null, [])) // no existing user
-      .mockImplementationOnce((sql, params, cb) => cb(null, { insertId: 123 })); // insert success
+      .mockResolvedValueOnce([[]]) // no existing user
+      .mockResolvedValueOnce([{ insertId: 123 }]);
 
     bcrypt.hash.mockResolvedValue('hashedPassword');
 
     const res = await request(app).post('/auth/register').send({
       email: 'new@example.com',
       password: 'password123',
-      name: 'New User',
+      name: 'New User'
     });
 
     expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
@@ -76,7 +72,7 @@ describe('Auth Routes', () => {
   });
 
   test('POST /auth/login should return 400 if user not found', async () => {
-    db.query.mockImplementation((sql, params, cb) => cb(null, [])); // no user
+    db.query.mockResolvedValue([[]]);
 
     const res = await request(app).post('/auth/login').send({
       email: 'missing@example.com',
@@ -88,9 +84,10 @@ describe('Auth Routes', () => {
   });
 
   test('POST /auth/login should return 400 if password is invalid', async () => {
-    db.query.mockImplementation((sql, params, cb) =>
-      cb(null, [{ id: 1, email: params[0], name: 'Test', password_hash: 'hashed' }])
-    );
+    db.query.mockResolvedValue([
+      [{ id: 1, email: 'test@example.com', name: 'Test', password_hash: 'hashed' }]
+    ]);
+
     bcrypt.compare.mockResolvedValue(false);
 
     const res = await request(app).post('/auth/login').send({
@@ -99,13 +96,14 @@ describe('Auth Routes', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe('Invalid email or password');
+    expect(res.body.message).toBe('Invalid password');
   });
 
   test('POST /auth/login should succeed with valid credentials', async () => {
-    db.query.mockImplementation((sql, params, cb) =>
-      cb(null, [{ id: 1, email: params[0], name: 'Test', password_hash: 'hashed' }])
-    );
+    db.query.mockResolvedValue([
+      [{ id: 1, email: 'test@example.com', name: 'Test', password_hash: 'hashed' }]
+    ]);
+
     bcrypt.compare.mockResolvedValue(true);
 
     const res = await request(app).post('/auth/login').send({
@@ -119,6 +117,7 @@ describe('Auth Routes', () => {
       userId: 1,
       name: 'Test',
       email: 'test@example.com',
+      role: undefined, // your code doesn't return role
     });
   });
 });

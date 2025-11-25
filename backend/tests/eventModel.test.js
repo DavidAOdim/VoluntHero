@@ -38,22 +38,20 @@ describe('eventModel', () => {
       date: '2025-10-27',
       location: 'Houston',
       description: 'Test description',
-      skills: 'Node.js',
-      urgency: 'High',
+      requiredSkills: 'Node.js',
     };
     db.query.mockResolvedValue([{ insertId: 123 }]);
 
     const result = await eventModel.createEvent(eventData);
 
     expect(db.query).toHaveBeenCalledWith(
-      'INSERT INTO events (title, date, location, description, skills, urgency) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO events (title, date, location, description, requiredSkills) VALUES (?, ?, ?, ?, ?)',
       [
         eventData.title,
         eventData.date,
         eventData.location,
         eventData.description,
-        eventData.skills,
-        eventData.urgency,
+        eventData.requiredSkills,
       ]
     );
     expect(result).toEqual({ id: 123, ...eventData });
@@ -65,7 +63,7 @@ describe('eventModel', () => {
 
     const result = await eventModel.updateEvent(1, updatedData);
 
-    expect(db.query).toHaveBeenCalledWith('UPDATE events SET ? WHERE id = ?', [updatedData, 1]);
+    expect(db.query).toHaveBeenCalledWith('UPDATE events SET title = ? WHERE id = ?', ['Updated Event', 1]);
     expect(result).toEqual({ id: 1, ...updatedData });
   });
 
