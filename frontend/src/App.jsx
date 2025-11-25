@@ -30,16 +30,26 @@ export default function App() {
   const [authedUser, setAuthedUser] = useState(
     () => JSON.parse(localStorage.getItem("volunthero_session")) || {}
   );
-  
-  const [authedEmail, setAuthedEmail] = useState(
-  () => {
+
+  const [authedEmail, setAuthedEmail] = useState(() => {
     const session = localStorage.getItem("volunthero_session");
     return session ? JSON.parse(session).email : "";
-  } );
+  });
+
+  // Sync authedUser whenever localStorage changes
+  useEffect(() => {
+    const session = localStorage.getItem("volunthero_session");
+    if (session) {
+      const parsedSession = JSON.parse(session);
+      setAuthedUser(parsedSession);
+      setAuthedEmail(parsedSession.email);
+    }
+  }); 
 
   function handleLogin(email) {
+    const session = JSON.parse(localStorage.getItem("volunthero_session"));
+    setAuthedUser(session);
     setAuthedEmail(email);
-    // localStorage.setItem("volunthero_session", email);
   }
 
   function handleLogout() {
@@ -47,6 +57,7 @@ export default function App() {
     localStorage.removeItem("volunthero_session");
     setView("home");
   }
+  console.log("Authed User in App.jsx:", authedUser);
 
   // --- Render Switch ---
   let content;
