@@ -20,6 +20,7 @@ export default function Navbar({
         }}
       >
         <h1>VoluntHero</h1>
+
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <nav>
             <button
@@ -79,8 +80,8 @@ export default function Navbar({
               </button>
             )}
 
-            {/* ⭐ NEW REPORTS BUTTON — visible for ALL logged-in users */}
-            {authedEmail && (
+            {/* ⭐ Reports only for ADMIN users */}
+            {authedEmail && authedUser?.role === "admin" && (
               <button
                 onClick={() => onNavigate("reports")}
                 aria-pressed={current === "reports"}
