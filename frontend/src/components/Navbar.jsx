@@ -28,6 +28,7 @@ export default function Navbar({
             >
               Home
             </button>
+
             {!authedEmail && (
               <button
                 onClick={() => onNavigate("login")}
@@ -36,6 +37,7 @@ export default function Navbar({
                 Login
               </button>
             )}
+
             {!authedEmail && (
               <button
                 onClick={() => onNavigate("register")}
@@ -44,18 +46,21 @@ export default function Navbar({
                 Register
               </button>
             )}
+
             <button
               onClick={() => onNavigate("profile")}
               aria-pressed={current === "profile"}
             >
               Profile
             </button>
+
             <button
               onClick={() => onNavigate("events")}
               aria-pressed={current === "events"}
             >
               {authedUser?.role === "admin" ? "Manage Events" : "Events"}
             </button>
+
             {authedEmail && (
               <button
                 onClick={() => onNavigate("volunteer-history")}
@@ -64,20 +69,31 @@ export default function Navbar({
                 Volunteer History
               </button>
             )}
+
             {authedEmail && authedUser?.role === "admin" && (
-              <>
-                <button
-                  onClick={() => onNavigate("matching")}
-                  aria-pressed={current === "matching"}
-                >
-                  Match Volunteers
-                </button>
-              </>
+              <button
+                onClick={() => onNavigate("matching")}
+                aria-pressed={current === "matching"}
+              >
+                Match Volunteers
+              </button>
             )}
+
+            {/* ⭐ NEW REPORTS BUTTON — visible for ALL logged-in users */}
+            {authedEmail && (
+              <button
+                onClick={() => onNavigate("reports")}
+                aria-pressed={current === "reports"}
+              >
+                Reports
+              </button>
+            )}
+
             {authedEmail ? (
               <button onClick={onLogout}>Logout ({authedEmail})</button>
             ) : null}
           </nav>
+
           {authedEmail && (
             <NotificationBell onClick={() => onNavigate("inbox")} />
           )}

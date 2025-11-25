@@ -4,19 +4,19 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 // === Import modularized components and helpers ===
-import Navbar from "./components/Navbar"; // was Header
+import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import SelectAccountType from "./components/SelectAccountType";
 import Register from "./components/Register";
-// import Profile from "./components/Profile"; // The old in-file component is replaced by ProfilePage
-import EventListPage from "./pages/EventListPage"; // Consolidated event logic
+import EventListPage from "./pages/EventListPage";
 import MatchingPage from "./pages/admin/MatchingPage";
 import ProfilePage from "./pages/ProfilePage";
 import VolunteerHistory from "./components/VolunteerHistory";
 import Inbox from "./notifications/Inbox";
+import ReportsPage from "./pages/ReportsPage";
 
-import { loadUsers, saveUsers, getUser } from "./utils/LocalStorageHelper"; // Local storage helpers
+import { loadUsers } from "./utils/LocalStorageHelper";
 
 /** ---- App (view switcher + session) ---- */
 export default function App() {
@@ -24,9 +24,6 @@ export default function App() {
   const [view, setView] = useState("home");
   const [accountType, setAccountType] = useState("");
 
-  // NOTE: Event state management is moved into EventListPage.jsx
-
-  // authedUser depends on users state, so it's a derived value
   const [authedUser, setAuthedUser] = useState(
     () => JSON.parse(localStorage.getItem("volunthero_session")) || {}
   );
@@ -36,7 +33,7 @@ export default function App() {
     return session ? JSON.parse(session).email : "";
   });
 
-  // Sync authedUser whenever localStorage changes
+  // Sync authedUser whenever local storage changes
   useEffect(() => {
     const session = localStorage.getItem("volunthero_session");
     if (session) {
@@ -44,7 +41,7 @@ export default function App() {
       setAuthedUser(parsedSession);
       setAuthedEmail(parsedSession.email);
     }
-  }); 
+  });
 
   function handleLogin(email) {
     const session = JSON.parse(localStorage.getItem("volunthero_session"));
@@ -57,6 +54,7 @@ export default function App() {
     localStorage.removeItem("volunthero_session");
     setView("home");
   }
+
   console.log("Authed User in App.jsx:", authedUser);
 
   // --- Render Switch ---
@@ -66,35 +64,44 @@ export default function App() {
     case "home":
       content = <Home onNavigate={setView} authedEmail={authedEmail} />;
       break;
+
     case "login":
-      // Note: Removed the unused 'users' prop
       content = <Login onLogin={handleLogin} onNavigate={setView} />;
       break;
+
     case "register":
       if (!accountType) {
         content = <SelectAccountType onSelect={setAccountType} />;
       } else {
-        // Note: Removed the unused 'users', 'setUsers', 'accountType' props
         content = <Register accountType={accountType} onNavigate={setView} />;
       }
       break;
+
     case "profile":
-      // ProfilePage is responsible for its own data fetching/saving
       content = <ProfilePage authedEmail={authedEmail} />;
       break;
+
     case "events":
-      // Use EventListPage for general event listing
       content = <EventListPage authedUser={authedUser} />;
       break;
+
     case "matching":
       content = <MatchingPage />;
       break;
+
     case "inbox":
       content = <Inbox onNavigate={setView} />;
       break;
+
     case "volunteer-history":
       content = <VolunteerHistory authedEmail={authedEmail} />;
       break;
+
+    /* ⭐ New Reports Page ⭐ */
+    case "reports":
+      content = <ReportsPage />;
+      break;
+
     default:
       content = <Home onNavigate={setView} authedEmail={authedEmail} />;
   }

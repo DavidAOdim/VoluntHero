@@ -3,6 +3,8 @@ const cors = require('cors'); // middleware to enable CORS (Cross-Origin Resourc
 const authRoutes = require('./routes/auth'); // importing authentication routes from a separate file
 const profileRoutes = require('./routes/profile'); // importing profile routes from a separate file
 const eventRoutes = require('./routes/event'); // import event routes
+const reportRoutes = require('./routes/report'); // report route
+
 const db = require("../../db");
 
 // Import volunteering modules (Hugo's)
@@ -27,8 +29,11 @@ app.use('/events', eventRoutes);
 app.use('/matching', matchingRoutes);
 app.use('/history', historyRoutes);
 
-// ✅ Mount notifications routes
+// Mount notifications
 app.use('/notifications', notificationRoutes);
+
+// ✅ MOUNT REPORTING ROUTES (required for assignment)
+app.use('/reports', reportRoutes);
 
 // Hugo's contribution - Add a test route to verify your modules are loaded
 app.get('/test-matching', (req, res) => {
@@ -52,6 +57,7 @@ if (require.main === module) {
     console.log(`   POST /notifications`);
     console.log(`   PATCH /notifications/:id/read`);
     console.log(`   DELETE /notifications/:id`);
+    console.log(`   GET  /reports/...  <-- YOUR NEW REPORT ENDPOINTS`);
     console.log(`   GET  /test-matching - Test route`);
   });
 }

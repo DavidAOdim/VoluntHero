@@ -3,8 +3,6 @@
 import useNotifications from "../notifications/useNotifications";
 
 export default function Home({ authedEmail, onNavigate }) {
-  const { add } = useNotifications();
-
   return (
     <main className="container">
       <div className="grid">
@@ -23,18 +21,6 @@ export default function Home({ authedEmail, onNavigate }) {
               >
                 <button onClick={() => onNavigate("profile")}>
                   Complete Profile
-                </button>
-                <button
-                  onClick={() =>
-                    add({
-                      title: "New Event Assignment",
-                      body: "Temitayo matched to “Park Cleanup”.",
-                      type: "success",
-                      related: { eventId: "E-1001" },
-                    })
-                  }
-                >
-                  Trigger Test Notification
                 </button>
               </div>
             )}
