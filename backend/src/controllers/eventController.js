@@ -44,6 +44,7 @@ const addEvent = async (req, res) => {
       location,
       description,
       requiredSkills,
+      // urgency
     });
     res.status(201).json(newEvent);
   } catch (err) {

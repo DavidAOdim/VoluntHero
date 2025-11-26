@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 import VolunteerHistory from "./components/VolunteerHistory";
 import Inbox from "./notifications/Inbox";
 import ReportsPage from "./pages/ReportsPage";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import { loadUsers } from "./utils/LocalStorageHelper";
 
@@ -24,34 +25,34 @@ export default function App() {
   const [view, setView] = useState("home");
   const [accountType, setAccountType] = useState("");
 
-  const [authedUser, setAuthedUser] = useState(
-    () => JSON.parse(localStorage.getItem("volunthero_session")) || {}
+  const [sessionString, setSessionString] = useState(
+    localStorage.getItem("volunthero_session")
   );
 
-  const [authedEmail, setAuthedEmail] = useState(() => {
-    const session = localStorage.getItem("volunthero_session");
-    return session ? JSON.parse(session).email : "";
-  });
+  const [authedUser, setAuthedUser] = useState(null);
+  const [authedEmail, setAuthedEmail] = useState("");
 
   // Sync authedUser whenever local storage changes
   useEffect(() => {
-    const session = localStorage.getItem("volunthero_session");
-    if (session) {
-      const parsedSession = JSON.parse(session);
+    if (sessionString) {
+      const parsedSession = JSON.parse(sessionString);
       setAuthedUser(parsedSession);
       setAuthedEmail(parsedSession.email);
+    } else {
+      setAuthedUser(null);
+      setAuthedEmail("");
     }
-  });
+  }, [sessionString]);
 
-  function handleLogin(email) {
-    const session = JSON.parse(localStorage.getItem("volunthero_session"));
-    setAuthedUser(session);
-    setAuthedEmail(email);
+  function handleLogin(userData) {
+    const str = JSON.stringify(userData);
+    localStorage.setItem("volunthero_session", str);
+    setSessionString(str);
   }
 
   function handleLogout() {
-    setAuthedEmail("");
     localStorage.removeItem("volunthero_session");
+    setSessionString(null);
     setView("home");
   }
 
@@ -96,10 +97,11 @@ export default function App() {
     case "volunteer-history":
       content = <VolunteerHistory authedEmail={authedEmail} />;
       break;
-
-    /* ⭐ New Reports Page ⭐ */
     case "reports":
       content = <ReportsPage />;
+      break;
+    case "forgotPassword":
+      content = <ForgotPassword onNavigate={setView} />;
       break;
 
     default:
