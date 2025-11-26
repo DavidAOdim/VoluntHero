@@ -4,6 +4,8 @@ const authRoutes = require('./routes/auth'); // importing authentication routes 
 const profileRoutes = require('./routes/profile'); // importing profile routes from a separate file
 const eventRoutes = require('./routes/event'); // import event routes
 const reportRoutes = require('./routes/report'); // report route
+// ⬇️ NEW
+const volunteerRoutes = require('./routes/volunteers');
 
 const db = require("../../db");
 
@@ -34,6 +36,10 @@ app.use('/notifications', notificationRoutes);
 
 // ✅ MOUNT REPORTING ROUTES (required for assignment)
 app.use('/reports', reportRoutes);
+
+
+// ⬇️ NEW
+app.use('/volunteers', volunteerRoutes);
 
 // Hugo's contribution - Add a test route to verify your modules are loaded
 app.get('/test-matching', (req, res) => {

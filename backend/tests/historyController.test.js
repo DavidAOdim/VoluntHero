@@ -1,45 +1,47 @@
-const request = require('supertest');
-const express = require('express');
-const historyRoutes = require('../src/modules/VolunteerHistory/routes');
+// backend/src/tests/historyController.test.js
 
-const app = express();
-app.use(express.json());
-app.use('/history', historyRoutes);
+const controller = require("../modules/VolunteerHistory/controller");
+const db = require("../../db");
 
-describe('History Controller', () => {
-  test('GET /history/:volunteerId - should return history', async () => {
-    const response = await request(app)
-      .get('/history/1')
-      .expect(200);
-    
-    expect(response.body.success).toBe(true);
-    expect(Array.isArray(response.body.data)).toBe(true);
-  });
+jest.mock("../../db", () => ({
+  query: jest.fn(),
+}));
 
-  test('GET /history/stats/:volunteerId - should return statistics', async () => {
-    const response = await request(app)
-      .get('/history/stats/1')
-      .expect(200);
-    
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toHaveProperty('totalEvents');
-    expect(response.body.data).toHaveProperty('totalHours');
-  });
+describe("History Controller", () => {
+  let req, res;
 
-  test('POST /history - should add history record', async () => {
-    const historyData = {
-      volunteerId: 2,
-      eventId: 3,
-      participationStatus: 'completed',
-      hours: 4
+  beforeEach(() => {
+    req = { params: {} };
+    res = {
+      json: jest.fn(),
+      status: jest.fn().mockReturnThis(),
     };
+  });
 
-    const response = await request(app)
-      .post('/history')
-      .send(historyData)
-      .expect(200);
-    
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toHaveProperty('participationStatus', 'completed');
+  test("returns history by email", async () => {
+    req.params.email = "senior@example.com";
+
+    db.query.mockResolvedValueOnce([
+      [
+        {
+          id: 1,
+          volunteerEmail: "senior@example.com",
+          eventName: "Senior Care Visit",
+        },
+      ],
+    ]);
+
+    await controller.getHistoryByEmail(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: [
+        {
+          id: 1,
+          volunteerEmail: "senior@example.com",
+          eventName: "Senior Care Visit",
+        },
+      ],
+    });
   });
 });

@@ -1,52 +1,39 @@
-const historyService = require('../src/modules/VolunteerHistory/service');
+// backend/src/tests/historyService.test.js
 
-describe('VolunteerHistoryService', () => {
-  describe('getVolunteerHistory', () => {
-    test('should return history for valid volunteer ID', async () => {
-      const history = await historyService.getVolunteerHistory(1);
-      
-      expect(Array.isArray(history)).toBe(true);
-      expect(history.length).toBeGreaterThan(0);
-      expect(history[0]).toHaveProperty('eventName');
-      expect(history[0]).toHaveProperty('participationStatus');
-    });
+const db = require("../../db");
+jest.mock("../../db", () => ({
+  query: jest.fn(),
+}));
 
-    test('should return empty array for volunteer with no history', async () => {
-      const history = await historyService.getVolunteerHistory(999);
-      expect(history).toEqual([]);
-    });
-  });
+const history = require("../modules/VolunteerHistory/service");
 
-  describe('getVolunteerStats', () => {
-    test('should calculate correct statistics', async () => {
-      const stats = await historyService.getVolunteerStats(1);
-      
-      expect(stats).toHaveProperty('totalEvents');
-      expect(stats).toHaveProperty('completedEvents');
-      expect(stats).toHaveProperty('totalHours');
-      expect(stats).toHaveProperty('skillsUsed');
-      expect(stats.totalEvents).toBeGreaterThan(0);
-      expect(stats.completedEvents).toBeLessThanOrEqual(stats.totalEvents);
-    });
+describe("History Service", () => {
+  beforeEach(() => jest.clearAllMocks());
 
-    test('should handle volunteer with no history', async () => {
-      const stats = await historyService.getVolunteerStats(999);
-      
-      expect(stats.totalEvents).toBe(0);
-      expect(stats.completedEvents).toBe(0);
-      expect(stats.totalHours).toBe(0);
-    });
-  });
+  test("getVolunteerHistory returns parsed rows", async () => {
+    db.query.mockResolvedValueOnce([
+      [
+        {
+          id: 1,
+          volunteerId: null,
+          volunteerName: "Arthur",
+          eventId: 3,
+          eventName: "Senior Care Visit",
+          eventDate: "2025-11-25",
+          eventLocation: "Houston",
+          participationStatus: "registered",
+          hoursVolunteered: 0,
+          skillsUsed: '["communication"]',
+          feedback: "",
+          rating: 0,
+        },
+      ],
+    ]);
 
-  describe('addHistoryRecord', () => {
-    test('should add new history record', async () => {
-      const newRecord = await historyService.addHistoryRecord(3, 1, 'completed', 5, 'Great work!');
-      
-      expect(newRecord).toHaveProperty('id');
-      expect(newRecord.volunteerId).toBe(3);
-      expect(newRecord.eventId).toBe(1);
-      expect(newRecord.participationStatus).toBe('completed');
-      expect(newRecord.hoursVolunteered).toBe(5);
-    });
+    const result = await history.getVolunteerHistory("senior@example.com");
+
+    expect(result[0].volunteerName).toBe("Arthur");
+    expect(result[0].skillsUsed).toEqual(["communication"]);
   });
 });
+

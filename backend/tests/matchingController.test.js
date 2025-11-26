@@ -1,43 +1,49 @@
-const request = require('supertest');
-const express = require('express');
-const matchingRoutes = require('../src/modules/VolunteerMatching/routes');
+// backend/src/tests/matchingController.test.js
 
-const app = express();
-app.use(express.json());
-app.use('/matching', matchingRoutes);
+const controller = require("../modules/VolunteerMatching/controller");
+const service = require("../modules/VolunteerMatching/service");
 
-describe('Matching Controller', () => {
-  test('GET /matching/event/:eventId - should return matches', async () => {
-    const response = await request(app)
-      .get('/matching/event/1')
-      .expect(200);
-    
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toContain('retrieved successfully');
-    expect(Array.isArray(response.body.data)).toBe(true);
+jest.mock("../modules/VolunteerMatching/service");
+
+describe("Matching Controller", () => {
+  let req, res;
+
+  beforeEach(() => {
+    req = { params: {}, body: {} };
+    res = {
+      json: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+    };
   });
 
-  test('GET /matching/event/invalid - should return 500 error', async () => {
-    const response = await request(app)
-      .get('/matching/event/invalid')
-      .expect(500);
-    
-    expect(response.body.success).toBe(false);
+  test("getMatches returns matches", async () => {
+    req.params.eventId = 3;
+
+    service.findMatches.mockResolvedValue([{ volunteerEmail: "a@b.com" }]);
+
+    await controller.getMatches(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      matches: [{ volunteerEmail: "a@b.com" }],
+    });
   });
 
-  test('POST /matching - should create match', async () => {
-    const matchData = {
-      volunteerId: 1,
-      eventId: 2
+  test("assign calls service correctly", async () => {
+    req.body = {
+      volunteerEmail: "test@example.com",
+      volunteerName: "Test User",
+      eventId: 3,
     };
 
-    const response = await request(app)
-      .post('/matching')
-      .send(matchData)
-      .expect(200);
-    
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toContain('successfully matched');
-    expect(response.body.data).toHaveProperty('volunteerName');
+    service.assignVolunteer.mockResolvedValue(1);
+
+    await controller.assign(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "Volunteer assigned successfully",
+      id: 1,
+    });
   });
 });

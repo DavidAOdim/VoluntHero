@@ -61,8 +61,7 @@ export default function Navbar({
             >
               {authedUser?.role === "admin" ? "Manage Events" : "Events"}
             </button>
-
-            {authedEmail && (
+            {authedEmail && authedUser?.role === "volunteer" && (
               <button
                 onClick={() => onNavigate("volunteer-history")}
                 aria-pressed={current === "volunteer-history"}

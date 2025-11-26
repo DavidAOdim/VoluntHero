@@ -94,7 +94,7 @@ export default function App() {
       break;
 
     case "volunteer-history":
-      content = <VolunteerHistory authedEmail={authedEmail} />;
+      content = <VolunteerHistory authedUser={authedUser} />;
       break;
 
     /* ⭐ New Reports Page ⭐ */
