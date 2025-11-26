@@ -12,6 +12,7 @@ jest.mock('../src/controllers/eventController', () => ({
 }));
 
 const eventRoutes = require('../src/routes/event');
+const { getEventById, getEvents } = require('../src/controllers/eventController');
 
 const app = express();
 app.use(express.json());
