@@ -45,13 +45,14 @@ describe('eventModel', () => {
     const result = await eventModel.createEvent(eventData);
 
     expect(db.query).toHaveBeenCalledWith(
-      'INSERT INTO events (title, date, location, description, requiredSkills) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO events (title, date, location, description, requiredSkills, urgency) VALUES (?, ?, ?, ?, ?, ?)',
       [
         eventData.title,
         eventData.date,
         eventData.location,
         eventData.description,
         eventData.requiredSkills,
+        eventData.urgency,
       ]
     );
     expect(result).toEqual({ id: 123, ...eventData });

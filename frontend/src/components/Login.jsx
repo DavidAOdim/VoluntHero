@@ -24,9 +24,8 @@ export default function Login({ onLogin, onNavigate }) {
 
       if (response.ok) {
         setOk("Login successful!");
-        onLogin(email.toLowerCase());
+        onLogin(result);
         onNavigate("profile");
-        localStorage.setItem("volunthero_session", JSON.stringify(result));
         console.log("Login successful for user:", result);
       } else {
         setErr(result.message || "Login failed.");
@@ -60,6 +59,12 @@ export default function Login({ onLogin, onNavigate }) {
                 onChange={(e) => setPw(e.target.value)}
                 required
               />
+              <button
+                type="button"
+                onClick={() => {setErr(""); setOk(""); onNavigate("forgotPassword")}}
+              >
+                Forgot Password
+              </button>
               {err ? (
                 <p className="muted" style={{ color: "crimson" }}>
                   {err}

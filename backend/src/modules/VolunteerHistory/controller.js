@@ -86,28 +86,7 @@ exports.addHistoryRecord = async (req, res) => {
 };
 
 
-// // backend/src/modules/VolunteerHistory/controller.js
-// const db = require("../../../../db");
 
-// exports.getVolunteerHistory = async (req, res) => {
-//   const { email } = req.params;
-
-//   try {
-//     const [rows] = await db.query(
-//       "SELECT * FROM volunteer_history WHERE volunteerName = (SELECT fullName FROM UserProfile WHERE email = ?) ORDER BY eventDate DESC",
-//       [email]
-//     );
-
-//     res.json({ success: true, data: rows });
-//   } catch (err) {
-//     console.error("History error:", err);
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-
-
-
-// const db = require("../../../../db");
 
 // exports.getVolunteerHistory = async (req, res) => {
 //   try {

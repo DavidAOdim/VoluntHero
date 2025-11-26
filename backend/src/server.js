@@ -63,7 +63,7 @@ if (require.main === module) {
     console.log(`   POST /notifications`);
     console.log(`   PATCH /notifications/:id/read`);
     console.log(`   DELETE /notifications/:id`);
-    console.log(`   GET  /reports/...  <-- YOUR NEW REPORT ENDPOINTS`);
+    console.log(`   GET  /reports/... `);
     console.log(`   GET  /test-matching - Test route`);
   });
 }

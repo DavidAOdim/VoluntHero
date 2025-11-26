@@ -8,9 +8,7 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   const { email, name, password, role } = req.body;
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email and password are required" });
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
   try {
@@ -59,10 +57,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = results[0];
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password_hash
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid password" });
@@ -77,6 +72,35 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Login error:", error);
+    res.status(500).json({ message: "Unexpected error", error });
+  }
+});
+
+router.post("/forgot-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Email and new password are required" });
+  }
+  try {
+    const [results] = await db.query(
+      "SELECT * FROM UserCredentials WHERE email = ?",
+      [email]
+    );
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Update password in database
+    await db.query(
+      "UPDATE UserCredentials SET password_hash = ? WHERE email = ?",
+      [hashedPassword, email]
+    );
+    res.json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("❌ Forgot Password error:", error);
     res.status(500).json({ message: "Unexpected error", error });
   }
 });

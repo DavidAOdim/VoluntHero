@@ -14,25 +14,40 @@ async function getEventById(id) {
 
 // Create event
 async function createEvent(eventData) {
-  const { title, date, location, description, requiredSkills } = eventData;
+  const {
+    title,
+    date,
+    location,
+    description,
+    requiredSkills,
+    urgency
+  } = eventData;
+
   const [result] = await db.query(
-    "INSERT INTO events (title, date, location, description, requiredSkills) VALUES (?, ?, ?, ?, ?)",
-    [title, date, location, description, requiredSkills]
+    `INSERT INTO events (title, date, location, description, requiredSkills, urgency) VALUES (?, ?, ?, ?, ?, ?)`,
+    [title, date, location, description, requiredSkills, urgency]
   );
+
   return { id: result.insertId, ...eventData };
 }
 
 // Update event
 async function updateEvent(id, updatedData) {
+  if (Object.keys(updatedData).length === 0) return null;
+
   const fields = Object.keys(updatedData)
     .map((key) => `${key} = ?`)
     .join(", ");
+
   const values = Object.values(updatedData);
-  const [result] = await db.query(`UPDATE events SET ${fields} WHERE id = ?`, [
-    ...values,
-    id,
-  ]);
+
+  const [result] = await db.query(
+    `UPDATE events SET ${fields} WHERE id = ?`,
+    [...values, id]
+  );
+
   if (result.affectedRows === 0) return null;
+
   return { id, ...updatedData };
 }
 

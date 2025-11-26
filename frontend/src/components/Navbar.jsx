@@ -54,13 +54,14 @@ export default function Navbar({
             >
               Profile
             </button>
-
+            {authedEmail && (
             <button
               onClick={() => onNavigate("events")}
               aria-pressed={current === "events"}
             >
               {authedUser?.role === "admin" ? "Manage Events" : "Events"}
-            </button>
+            </button> )}
+
             {authedEmail && authedUser?.role === "volunteer" && (
               <button
                 onClick={() => onNavigate("volunteer-history")}

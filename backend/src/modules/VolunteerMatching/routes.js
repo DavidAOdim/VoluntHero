@@ -15,18 +15,7 @@ router.get("/assigned/:eventId", controller.getAssigned);
 module.exports = router;
 
 
-// const express = require("express");
-// const router = express.Router();
-// const controller = require("./controller");
 
-// router.get("/event/:eventId", controller.findMatches);
-// router.get("/assigned/:eventId", controller.getAssignedVolunteers);
-// router.post("/assign", controller.assignVolunteer);
-
-// module.exports = router;
-
-
-// const express = require("express");
 // const router = express.Router();
 // const controller = require("./controller");
 
