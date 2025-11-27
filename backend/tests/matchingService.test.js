@@ -1,49 +1,90 @@
-// backend/src/tests/matchingService.test.js
+// backend/tests/matchingService.test.js
 
-const db = require("../../db");
 jest.mock("../../db", () => ({
   query: jest.fn(),
 }));
-
-const service = require("../modules/VolunteerMatching/service");
+const db = require("../../db");
+const service = require("../src/modules/VolunteerMatching/service");
 
 describe("Matching Service", () => {
-  beforeEach(() => jest.clearAllMocks());
-
-  test("getEvent returns event data", async () => {
-    db.query.mockResolvedValueOnce([
-      [
-        {
-          id: 3,
-          title: "Senior Care Visit",
-          date: "2025-11-25",
-          location: "Houston, TX",
-          requiredSkills: '["compassion"]',
-        },
-      ],
-    ]);
-
-    const result = await service.getEvent(3);
-    expect(result.title).toBe("Senior Care Visit");
-    expect(result.requiredSkills).toEqual(["compassion"]);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("getVolunteers returns users from UserProfile", async () => {
-    db.query.mockResolvedValueOnce([
-      [
-        {
-          email: "test@example.com",
-          fullName: "Test User",
-          skills: '["Cooking"]',
-          availability: '["Monday"]',
-          city: "Houston",
-          state: "TX",
-        },
-      ],
-    ]);
+  test("findMatches returns scored and sorted matches", async () => {
+    // 1st query: getEvent
+    db.query
+      .mockResolvedValueOnce([
+        [
+          {
+            id: 3,
+            title: "Senior Care Visit",
+            date: "2025-11-25",
+            location: "Houston, TX",
+            requiredSkills: '["compassion", "communication"]',
+          },
+        ],
+      ])
+      // 2nd query: getVolunteers
+      .mockResolvedValueOnce([
+        [
+          {
+            email: "v1@example.com",
+            fullName: "Good Match",
+            skills: '["compassion","communication"]',
+            availability: '["2025-11-25"]',
+            city: "Houston",
+            state: "TX",
+          },
+          {
+            email: "v2@example.com",
+            fullName: "Low Match",
+            skills: '["other"]',
+            availability: "[]",
+            city: "Dallas",
+            state: "TX",
+          },
+        ],
+      ]);
 
-    const result = await service.getVolunteers();
-    expect(result[0].fullName).toBe("Test User");
-    expect(result[0].skills).toEqual(["Cooking"]);
+    const matches = await service.findMatches(3);
+
+    expect(matches).toHaveLength(2);
+    // Best match first
+    expect(matches[0].volunteerEmail).toBe("v1@example.com");
+    expect(matches[0].matchScore).toBeGreaterThan(matches[1].matchScore);
+    expect(matches[0].reason).toContain("Skills:");
+    expect(matches[0].reason).toContain("Same city");
+    expect(matches[0].reason).toContain("Available on date");
+  });
+
+  test("assignVolunteer inserts into volunteer_history and returns id", async () => {
+    // 1st query: getEvent(eventId)
+    db.query
+      .mockResolvedValueOnce([
+        [
+          {
+            id: 3,
+            title: "Senior Care Visit",
+            date: "2025-11-25",
+            location: "Houston, TX",
+            requiredSkills: "[]",
+          },
+        ],
+      ])
+      // 2nd query: INSERT into volunteer_history
+      .mockResolvedValueOnce([{ insertId: 99 }]);
+
+    const id = await service.assignVolunteer(
+      "vol@example.com",
+      "Volunteer One",
+      3
+    );
+
+    expect(id).toBe(99);
+    expect(db.query).toHaveBeenCalledTimes(2);
+    expect(db.query.mock.calls[1][0]).toContain(
+      "INSERT INTO volunteer_history"
+    );
   });
 });
